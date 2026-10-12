@@ -1,0 +1,9 @@
+# Deployment and continuous integration
+
+The implemented local stack runs the Next.js frontend, FastAPI backend, and PostgreSQL through the root `docker-compose.yml`. The root `Dockerfile` builds the API and `frontend/Dockerfile` builds the web application. Copy `.env.example` to `.env`, set a local password, and run `docker compose up --build -d` from the project root. The frontend is available at `http://127.0.0.1:3000` by default, or at `WEB_PORT`. The API is available at `http://127.0.0.1:8000` by default, or at `API_PORT`; `/health/live` checks the process and `/health/ready` checks PostgreSQL. `docker compose down` stops services while retaining the database volume. `.env` and other local environment variants are excluded by `.gitignore`, while `.env.example` remains shareable.
+
+The frontend currently shows platform status and the planned product path. The job mechanism, trace collection, and instrumented fixture target are planned additions. Add Redis, Kafka, Prometheus, or Grafana to the local stack only when their corresponding capability is implemented and documented. Runtime targets and traffic workers need explicit resource limits and network policy.
+
+CI should run formatting and lint checks, unit tests, analyzer fixture regressions, integration and contract tests for active dependencies, an end-to-end golden flow check where feasible, a build, and appropriate dependency and container scans. Tests must distinguish a missing optional service from a product failure and must not run load or fault experiments against uncontrolled targets.
+
+A later hosted deployment may use AWS compute, managed PostgreSQL, object storage, identity controls, centralized logs, and infrastructure as code. Choose the deployment service from measured resource and operating needs. Production hosting is an extension and must preserve project isolation, telemetry retention, safe import, and experiment target controls.

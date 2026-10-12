@@ -1,0 +1,7 @@
+# Findings and AI assistant
+
+The findings engine is deterministic before any AI interpretation. Initial rules include dominant cumulative or exclusive span duration, repeated database calls, high error concentration, and p99 growth under load. Later rules can cover queue lag, pool saturation, cache misses, and retry amplification. A finding contains rule ID and version, severity, evidence IDs, sample size, comparison window, measured values, uncertainty, and a plain-language conclusion. A finding such as “database spans represented 78% of measured request duration across 1,000 traces” is valid only when those records exist.
+
+The AI assistant accepts a constrained evidence bundle: repository metadata, selected source snippets, IR paths, endpoint details, trace summaries, metrics, findings, and relevant documentation. It can explain a request path, observed bottleneck, likely causes, test ideas, and architecture tradeoffs. It must label observations, inferences, and unknowns separately. It cannot claim a function ran merely because a static edge exists.
+
+Retrieval can index README files, architecture documentation, selected source ranges, endpoint descriptions, and findings using metadata including project ID, revision SHA, path, line range, entity ID, and document type. Secret scanning and access checks run before indexing and retrieval. Embeddings and a vector store are optional until keyword or structured retrieval proves insufficient.

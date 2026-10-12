@@ -1,0 +1,5 @@
+# Quality and verification
+
+Unit tests cover parsers, route detectors, IR validation, graph building, finding rules, and request schemas. Fixture repositories have known endpoint and edge expectations, including unresolved or dynamic behavior. Integration tests cover PostgreSQL, job processing, trace ingestion, and any Redis or Kafka integration actually used. Contract tests protect API and event schemas. End-to-end tests follow repository import through API discovery and graph display, then the controlled trace and experiment path. Security tests cover path traversal, archive limits, URL policy, authorization, secret handling, and unsafe execution. CI runs linting, tests, builds, and dependency or container checks appropriate to the implementation.
+
+The platform itself records analysis duration, files analyzed, failures, queue depth, worker use, trace ingestion, traffic errors, latency, and AI cost or latency where available. Operational dashboards should distinguish platform failures from target-application failures.

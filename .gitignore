@@ -19,3 +19,8 @@ __pycache__/
 
 # OS
 .DS_Store
+!.env.example
+*.egg-info/
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
