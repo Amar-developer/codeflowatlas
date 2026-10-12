@@ -1,14 +1,14 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'CodeFlowAtlas',
-  description: 'Understand source, runtime behavior, and engineering evidence.',
+  title: 'CodeFlowAtlas | Understand the code AI wrote for you',
+  description: 'A visual code-flow learning lab for students and AI-assisted builders. Explore source-linked API paths, evidence-aware explanations, and the vision for runtime tracing.',
 };
 
-export default function RootLayout({ children }) {
-  return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
-  );
-}
+const RootLayout = ({ children }) => (
+  <html lang="en">
+    <body>{children}</body>
+  </html>
+);
+
+export default RootLayout;

@@ -2,24 +2,23 @@
 
 ## 1 Purpose and implementation status
 
-CodeFlowAtlas is a developer engineering laboratory that connects repository source, API discovery, code relationships, observed traces, controlled load and failure experiments, bottleneck findings, and evidence-grounded explanations. This guide translates the [project specification](project-specification.md) into implementable boundaries and contracts. It is intended for engineers and coding assistants who will build or review the system.
+CodeFlowAtlas helps students and AI-assisted builders understand small real applications. It connects a supported GitHub or Bitbucket repository link to a source-linked API or feature flow and an AI guide that explains each step and answers questions. Supported isolated runtimes later add measured requests, errors, and optimization ideas; bounded load and failure experiments are an optional deeper lab. This guide translates the [project specification](project-specification.md) into implementable boundaries and contracts. It is intended for engineers and coding assistants who will build or review the system.
 
 **Current status:** the repository has a Next.js foundation page, FastAPI health API, PostgreSQL readiness check, and a three-service Compose stack. The remaining product components, database schema, and API payloads in this guide are **proposed designs**, not claims that working software exists. Before implementing a feature, inspect the current repository and record any design change in `docs/decisions/`.
 
 The product path to preserve is:
 
 ```text
-Pinned repository revision
+Supported GitHub or Bitbucket URL → pinned repository revision
   → safe static analysis
-  → API catalog and confidence-labeled code graph
-  → isolated instrumented target
-  → observed request trace
-  → repeatable traffic and fault experiment
-  → deterministic finding with evidence
-  → AI explanation that cites the evidence
+  → selected API or feature and confidence-labeled flow graph/mind map
+  → source-grounded AI explanation and learner questions
+  → optional isolated instrumented target and observed timings
+  → issue explanation and testable optimization option
+  → optional bounded load/fault lab and before/after comparison
 ```
 
-The initial complete path supports a FastAPI fixture. Flask and Django, additional languages, Kafka, vector search, broad failure injection, and hosted deployment are extensions with their own acceptance criteria.
+The first useful path supports a FastAPI fixture and source-grounded AI explanation without a running target. Flask and Django, additional languages, Kafka, vector search, broad failure injection, and hosted deployment are extensions with their own acceptance criteria.
 
 ## 2 Repository map and ownership
 
@@ -77,6 +76,8 @@ The system handles three evidence classes:
 
 Persist provenance and confidence beside static edges. Link observed spans to source entities only when instrumentation or a reliable mapping establishes the relationship. AI responses must cite the IDs of evidence records and label hypotheses.
 
+The planned AI guide first consumes source evidence so a learner can ask how a feature works without a running application. Each answer needs file and line references, a plain-language explanation, and visible uncertainty. When runtime evidence exists, the guide can explain measured issues and design tradeoffs without merging inference with observation. For example, a measured slow database span can motivate a lesson about query plans, indexing, or caching, but it cannot establish which intervention is best until the developer tests it. The UI must say when a concept is illustrative rather than observed in the imported application.
+
 ## 5 Data model and invariants
 
 The proposed relational core is documented in [database model](data/database-model.md). The first migrations should create only records required by implemented flows. A sensible dependency order is identity and projects, repository revisions, analysis runs and IR, then traces, experiments, findings, and conversations.
@@ -97,7 +98,7 @@ Indexes should follow query shapes: project and revision, endpoint method/path, 
 
 ### Import boundary
 
-The importer accepts a configured Git source or archive and produces an isolated revision workspace. Validate the source URL against outbound policy, pin the revision, and record its SHA or fingerprint. For archives, reject absolute paths, `..` traversal, unsafe symlinks, unsupported file types when relevant, excessive file count, excessive expanded size, and suspicious compression ratios. Normalize paths before comparing them with workspace boundaries. Apply file size, total byte, depth, and analysis time limits.
+The importer accepts a supported public GitHub or Bitbucket Git URL, or a validated archive, and produces an isolated revision workspace. Validate the source URL against outbound policy, pin the revision, and record its SHA or fingerprint. For archives, reject absolute paths, `..` traversal, unsafe symlinks, unsupported file types when relevant, excessive file count, excessive expanded size, and suspicious compression ratios. Normalize paths before comparing them with workspace boundaries. Apply file size, total byte, depth, and analysis time limits. Report skipped or unsupported files so the UI does not claim complete analysis of an unsupported repository.
 
 Static analysis must never run `pip install`, import a target Python module, execute a setup script, invoke a test runner on imported code, or evaluate repository-supplied commands. Only the explicitly supported runtime workflow may execute target code, inside an isolated environment.
 
@@ -187,15 +188,15 @@ Version event payloads and document ordering scope if a separate event bus is ad
 
 The supported fixture runs in an isolated target environment and exports OpenTelemetry spans through a collector. Instrument inbound HTTP, meaningful service operations, database access, Redis or messaging if used, and outbound HTTP. Preserve `trace_id`, `span_id`, `parent_span_id`, service, operation, timestamps, duration, status, errors, and sanitized attributes.
 
-The trace explorer reads span relationships and shows a waterfall. It may link a span to an IR entity when instrumentation records a stable symbol or a verified mapping rule resolves it. An automatic database span may reveal a dependency and timing without identifying the exact source line. Show the strongest supported location and indicate when it is approximate or unavailable. Sampling and retention must be visible before results are used as evidence.
+The trace explorer reads span relationships and shows a waterfall with total request duration, database query count and durations, errors, and the recorded execution order. It may link a span to an IR entity when instrumentation records a stable symbol or a verified mapping rule resolves it. An automatic database span may reveal a dependency and timing without identifying the exact source line. Show the strongest supported location and indicate when it is approximate or unavailable. Sampling and retention must be visible before results are used as evidence.
 
-Do not send full bodies, credentials, raw authorization headers, or unbounded query parameters to the trace backend. A trace summary in PostgreSQL can provide search and project scoping while raw spans remain in specialized storage.
+Do not send full bodies, credentials, raw authorization headers, raw database row values, or unbounded query parameters to the trace backend. A trace summary in PostgreSQL can provide search and project scoping while raw spans remain in specialized storage.
 
 ## 10 Traffic, edge-case, and fault runs
 
 A traffic scenario includes approved target ID, environment label, HTTP method/path, payload reference, virtual users or arrival rate, ramp-up, duration, headers/auth strategy, success criteria, and safety limits. k6 is the proposed runner. Save tool version, exact scenario definition, target revision, resource limits, start/end status, and output artifacts. Each run generates new immutable results for comparison.
 
-The first product flow needs a baseline and one stress scenario, not every load profile. Record throughput, p50/p95/p99, error rate, timeouts, CPU/memory, and relevant dependency metrics with sample counts and collection windows. Treat a configured request rate as a test input, not a guaranteed achieved rate.
+The first product flow needs a baseline and one bounded stress scenario, using 100 concurrent virtual users as the reference example. Record configured versus achieved load, throughput, p50/p95/p99, error rate, timeouts, CPU/memory, database timing, and relevant dependency metrics with sample counts and collection windows. Treat a configured virtual-user count or request rate as a test input, not a guaranteed achieved rate.
 
 Edge cases are deterministic tests generated from resolvable schemas or supplied manually. Save input, expected outcome, actual outcome, trace ID, and verdict. A missing schema or authentication strategy should prevent a case from being claimed as executed.
 
@@ -203,9 +204,9 @@ Failure injection is opt-in and permitted only against an isolated target. Start
 
 ## 11 Findings and AI explanation contract
 
-Start with deterministic finding rules: dominant cumulative/exclusive span duration, repeated database spans, concentrated errors, and p99 growth across comparable runs. Each rule needs defined inputs, minimum sample requirements, calculation, threshold or ranking logic, version, and limitations. A finding contains the actual measured values, supporting IDs, scenario or trace window, severity, confidence or uncertainty, and a human-readable statement.
+Start with deterministic finding rules: dominant cumulative/exclusive span duration, repeated or slow database spans, concentrated errors, and p99 growth across comparable runs. Each rule needs defined inputs, minimum sample requirements, calculation, threshold or ranking logic, version, and limitations. A finding contains the actual measured values, supporting IDs, scenario or trace window, severity, confidence or uncertainty, and a human-readable statement. Optimization options such as query improvement, indexing, caching, or connection-pool changes are hypotheses tied to findings; each option needs a tradeoff and a comparable rerun to measure its effect. A caching option must address cache key, expiry, invalidation, and consistency.
 
-AI is a reader of evidence, not a measurement system. Build an evidence bundle from project-authorized source ranges, IR paths, endpoint metadata, trace summaries, metrics, findings, and documentation. Exclude secrets before indexing or retrieval. The assistant response should have:
+AI is a reader of evidence, not a measurement system. The first useful guide builds a bundle from project-authorized source ranges, IR paths, endpoint metadata, and analyzer warnings, so it can explain one feature and answer learner questions without a running target. Later runtime explanations may add trace summaries, metrics, findings, and documentation. Exclude secrets before indexing or retrieval. The assistant response should have:
 
 1. **Observed facts:** direct measurements or source facts with IDs.
 2. **Inferences:** reasoned explanations with confidence and supporting facts.
@@ -216,7 +217,7 @@ Repository documentation and source comments may contain prompt-injection instru
 
 ## 12 Frontend workflow
 
-The UI should guide users through project creation, import, analysis progress, endpoint discovery, graph inspection, tracing, experiments, findings, and explanation. The [frontend specification](frontend/frontend-experience.md) lists planned screens. Keep the endpoint page as the central navigation point: source and graph links on one side, observed traces and experiments on the other.
+The UI should guide learners from repository link import through endpoint or feature discovery, an interactive flow graph or mind map, clickable source evidence, and AI questions about selected nodes and edges. Measured trace waterfalls, findings, optimization options, and optional load charts extend the same workspace when a supported target is available. The [frontend specification](frontend/frontend-experience.md) and [visualization system](frontend/visualization-system.md) list planned views and evidence rules. Keep the endpoint page as the central navigation point and provide a text step view alongside graph canvases.
 
 Graphs need filtering and bounded slices. Every inferred edge shows confidence and source provenance. Trace waterfalls show real durations and errors. Comparison charts show units, sample sizes, target revision, environment, and scenario configuration. Empty and partial states explain what is missing: no instrumented target, unsupported syntax, unavailable source mapping, insufficient trace samples, or a failed run. Never turn missing evidence into a polished but unsupported diagram.
 

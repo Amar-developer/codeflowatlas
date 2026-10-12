@@ -30,12 +30,14 @@ The [developer guide](developer-guide.md) connects the product requirements to p
 - [Traffic, edge cases, and failures](experiments/traffic-edge-cases-and-failures.md)
 - [Findings and AI assistant](ai/findings-and-assistant.md)
 - [Frontend experience](frontend/frontend-experience.md)
+- [Visualization system](frontend/visualization-system.md)
 
 ## Safety, quality, and delivery
 
 - [Security and trust boundaries](security/security-and-trust-boundaries.md)
 - [Quality and verification](testing/quality-and-verification.md)
 - [Delivery sequence](delivery/delivery-sequence.md)
+- [Functionality and implementation flow](delivery/functionality-and-implementation-flow.md)
 - [Acceptance criteria](delivery/acceptance-criteria.md)
 - [Deployment and CI](deployment/deployment-and-ci.md)
 - [Open design decisions](decisions/open-design-decisions.md)

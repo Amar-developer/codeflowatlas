@@ -1,7 +1,7 @@
 # Frontend
 
-This Next.js application lives beside the FastAPI backend in the same CodeFlowAtlas repository. The current home page displays API and database health, links to the API documentation, and marks future product capabilities as planned.
+This Next.js application lives beside the FastAPI backend in the same CodeFlowAtlas repository. Tailwind CSS v4 styles a responsive AI-lab themed landing page with a complete footer, visual flow and trace concept previews, and CSS motion that respects reduced-motion preferences. The page displays real API and database health and links to the live API documentation. Repository analysis, the AI guide, runtime traces, and experiments are clearly marked as planned. `app/globals.css` loads Tailwind and contains page-wide visual effects and animation rules; component layout and colors live in utility classes.
 
 The root Compose file builds this folder with `frontend/Dockerfile`. It sets `API_INTERNAL_URL` for server-side health checks and `API_PUBLIC_URL` for the browser-facing API documentation link.
 
-For local development, use Node.js 20.9 or newer, run `npm ci` and `npm run dev` here, and set both API URLs to the API address reachable from your host.
+For local development, use Node.js 20.9 or newer. Run `npm ci` yourself in this folder to install the locked dependencies, then `npm run dev`. Set both API URLs to the API address reachable from your host.

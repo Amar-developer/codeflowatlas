@@ -1,6 +1,6 @@
 # CodeFlowAtlas
 
-CodeFlowAtlas is a developer engineering laboratory for understanding unfamiliar applications. It connects repository analysis, API and code graphs, real request traces, controlled traffic and failure experiments, evidence-backed findings, and grounded AI explanations.
+CodeFlowAtlas helps students and AI-assisted builders understand the small, real projects they create through interactive visualizations. A user pastes a supported GitHub or Bitbucket repository link, selects an API or feature, and explores a source-linked flow graph or mind map of its route, functions, dependencies, database access, and response. Clicking a step opens its code and evidence; an integrated AI guide explains what it does and answers questions. When a supported application can run in an approved isolated environment, the same workspace adds trace waterfalls, database timings, errors, and evidence-backed improvement ideas. Controlled load tests add charts and comparisons in an optional deeper lab.
 
 **Project status:** The project has a Next.js frontend, FastAPI health API, PostgreSQL readiness check, and one Docker Compose stack. The frontend shows live platform status. Repository analysis, tracing, experiments, and their full user interfaces remain planned.
 
@@ -27,11 +27,13 @@ Create a virtual environment, install `backend/requirements.txt`, then provide `
 
 ### Run the frontend outside Docker
 
-From `frontend`, run `npm ci` and `npm run dev`. Use Node.js 20.9 or newer. With the API running on your host, set `API_INTERNAL_URL=http://127.0.0.1:8000` and `API_PUBLIC_URL=http://127.0.0.1:8000`; change the port to match `API_PORT` if needed. The Compose setup supplies these URLs automatically.
+From `frontend`, run `npm ci` yourself and then `npm run dev`. Use Node.js 20.9 or newer. The UI uses Tailwind CSS v4 through PostCSS. With the API running on your host, set `API_INTERNAL_URL=http://127.0.0.1:8000` and `API_PUBLIC_URL=http://127.0.0.1:8000`; change the port to match `API_PORT` if needed. The Compose setup supplies these URLs automatically.
 
 ## Core flow
 
-Repository → static analysis → API catalog and code graph → runtime trace → load and failure experiment → bottleneck finding → engineering explanation.
+GitHub or Bitbucket link → pinned source revision → choose an API or feature → interactive flow graph and mind map → inspect code and ask the AI guide → optional trace and timing views → observed issue and improvement idea → rerun to check the result.
+
+The first useful result is understanding a confusing feature in a small project, even when the repository has no running database. Source-only explanations describe what the code may do and identify unsupported or uncertain paths. Runtime claims, timings, and bottlenecks require an instrumented, approved, isolated target. A later load lab can simulate bounded traffic, such as 100 virtual users, and compare a proposed change against measured results. The current homepage and health checks are only the foundation for this workflow.
 
 ## Read first
 
@@ -43,6 +45,7 @@ Repository → static analysis → API catalog and code graph → runtime trace 
 - [Scope and boundaries](docs/product/scope.md)
 - [Acceptance criteria](docs/delivery/acceptance-criteria.md)
 - [Golden demonstration flow](docs/product/golden-flow.md)
+- [Functionality and implementation flow](docs/delivery/functionality-and-implementation-flow.md)
 
 ## Project layout
 
@@ -64,7 +67,7 @@ Repository → static analysis → API catalog and code graph → runtime trace 
 
 ## Build order
 
-Foundation → safe import and static analysis → API catalog and graph → controlled runtime tracing → repeatable experiments and findings → grounded AI → justified extensions.
+Foundation → safe import and static analysis → API or feature flow with grounded AI help → controlled runtime tracing → optional experiments and findings → justified extensions.
 
 The first complete demonstration uses an isolated FastAPI fixture. Imported repository code is read as data during static analysis and is never executed on the host.
 

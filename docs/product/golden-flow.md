@@ -1,18 +1,20 @@
 # Golden demonstration flow
 
-The strongest CodeFlowAtlas demonstration is one reproducible experiment on an isolated FastAPI commerce fixture. It connects source analysis to observed behavior without treating one as proof of the other.
+The strongest CodeFlowAtlas demonstration begins with a small FastAPI commerce fixture published as a supported public GitHub or Bitbucket repository. A student should understand its `POST /checkout` flow with source-linked AI help before the application is run. An approved isolated target later adds observed behavior and experiments without treating source analysis as proof of execution.
 
-1. Import a pinned fixture revision and record its content fingerprint.
+1. Paste the fixture repository URL, pin its revision, and record its commit SHA or content fingerprint.
 2. Detect Python and FastAPI. Start a static analysis run without executing fixture code.
-3. Discover `POST /checkout`, its handler, and resolvable calls to inventory, payment, and order persistence. Mark unresolved or inferred edges with confidence and provenance.
-4. Open the endpoint page, graph path, and exact source locations.
-5. Launch the instrumented fixture in an isolated target environment and send a baseline request.
-6. Display its OpenTelemetry waterfall, statuses, dependencies, and source links where reliable mapping exists.
-7. Run a saved baseline traffic scenario, then a saved stress scenario against the same target revision and environment limits.
-8. Compare throughput, latency percentiles, errors, and dependency metrics with sample sizes.
-9. Inject one bounded dependency delay, rerun the scenario, and show its effect in traces and metrics.
-10. Generate a deterministic finding that cites the relevant spans and metric samples.
-11. Ask the AI assistant to explain the finding. The answer separates observation, inference, and unknowns and links to the cited evidence.
-12. Rerun the saved experiment and compare results. Differences should be visible, not silently presented as identical.
+3. Discover `POST /checkout`, its handler, and resolvable calls to inventory, payment, and order persistence. Show detectable database reads or writes, and mark unresolved or inferred edges with confidence and provenance.
+4. Open the endpoint page and walk through route, handler, downstream functions, detectable data access, and response with exact source locations.
+5. Ask the AI guide what each step does and where a value comes from. It cites source lines, labels unresolved edges, and does not claim that the code ran. This is the first useful result.
+6. Launch the instrumented fixture in an isolated target environment and send a baseline request.
+7. Display its OpenTelemetry waterfall, total request duration, database query count and durations, statuses, dependencies, and source links where reliable mapping exists.
+8. Ask why one observed request is slow or failed. The AI guide separates observation, inference, and unknowns and links to the cited evidence.
+9. In the optional lab, run a saved baseline and bounded 100-concurrent-virtual-user scenario against the same target revision and environment limits.
+10. Compare achieved throughput, latency percentiles, errors, database timing, and resource metrics with sample sizes.
+11. Inject one bounded dependency delay, rerun the scenario, and show its effect in traces and metrics.
+12. Generate a deterministic finding that cites the relevant spans and metric samples.
+13. Compare relevant improvement options such as query changes, indexing, or caching, with evidence, tradeoffs, and a testable experiment.
+14. Rerun the saved experiment after a controlled change and compare before/after results. Differences should be visible, not silently presented as identical.
 
-The flow is complete when another developer can repeat it using the documented fixture, environment, scenario definitions, and expected graph assertions.
+The source-learning flow is complete when another student can follow and question the same code path using the documented fixture and expected graph assertions. The deeper runtime and lab flows are complete when another developer can repeat them using the documented environment and scenario definitions.
