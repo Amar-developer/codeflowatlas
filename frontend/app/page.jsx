@@ -212,7 +212,7 @@ const HomePage = async () => {
 
       <main>
         <section
-          className="relative mx-auto grid max-w-7xl items-center gap-14 px-5 pb-20 pt-20 sm:px-8 md:pt-28 lg:grid-cols-2 lg:gap-12 lg:px-10 lg:pb-28"
+          className="relative mx-auto grid max-w-7xl items-center gap-14 px-5 pb-10 pt-10 sm:px-8 md:pt-18 lg:grid-cols-2 lg:gap-12 lg:px-10 lg:pb-28"
           aria-labelledby="hero-title"
         >
           <div className="animate-rise relative z-10">
@@ -225,7 +225,7 @@ const HomePage = async () => {
             </div>
             <h1
               id="hero-title"
-              className="max-w-2xl text-5xl font-bold leading-tight tracking-tight text-white sm:text-6xl lg:text-7xl"
+              className="max-w-2xl text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl"
             >
               Understand the code{" "}
               <span className="gradient-text">AI wrote for you.</span>

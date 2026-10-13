@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted for the initial backend foundation.
+Superseded in its database-access choice by ADR 0003; the container and health-check foundation remains accepted.
 
 ## Context
 
@@ -12,7 +12,7 @@ CodeFlowAtlas needs a locally repeatable backend before repository analysis and 
 
 Use a Python 3.12 FastAPI process in a non-root API container and PostgreSQL 17 in a separate Compose service. Keep PostgreSQL on the internal Compose network. Publish only the API on the host loopback address. Configure database credentials through an ignored `.env` file. Use a liveness endpoint for the process and a readiness endpoint that executes `SELECT 1` against PostgreSQL. Compose waits for the database health check before starting the API.
 
-The first API slice has no persistent product tables yet. Add migrations and domain models with the first project/repository feature rather than creating unused schema. The API uses `asyncpg` for the readiness query; a broader database access pattern will be decided when domain queries are implemented.
+The first API slice had no persistent product tables. Its initial direct-driver readiness query was temporary; ADR 0003 defines the SQLAlchemy and Alembic database layer.
 
 ## Alternatives considered
 

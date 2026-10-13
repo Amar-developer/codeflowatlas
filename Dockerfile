@@ -11,6 +11,8 @@ RUN pip install --no-cache-dir -r /app/requirements.txt \
     && useradd --system --gid app --home-dir /app app
 
 COPY backend/app /app/app
+COPY backend/alembic.ini /app/alembic.ini
+COPY backend/alembic /app/alembic
 
 USER app
 

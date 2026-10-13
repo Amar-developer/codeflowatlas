@@ -2,19 +2,38 @@
 
 import asyncio
 import logging
-import os
+from contextlib import asynccontextmanager
 
-import asyncpg
 from fastapi import FastAPI, status
 from fastapi.responses import JSONResponse
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
+
+from app.db import create_engine
 
 
 logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(application: FastAPI):
+    engine = create_engine()
+    application.state.db_engine = engine
+    application.state.db_session_factory = async_sessionmaker(
+        engine, expire_on_commit=False
+    )
+    try:
+        yield
+    finally:
+        await engine.dispose()
+
 
 app = FastAPI(
     title="CodeFlowAtlas API",
     description="Repository intelligence and engineering experiments",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 
@@ -24,23 +43,17 @@ async def liveness() -> dict[str, str]:
     return {"status": "ok", "service": "codeflowatlas-api"}
 
 
+async def _ping_database(engine: AsyncEngine) -> None:
+    async with engine.connect() as connection:
+        await connection.execute(text("SELECT 1"))
+
+
 @app.get("/health/ready", tags=["health"])
 async def readiness() -> JSONResponse:
-    """Verify that PostgreSQL is reachable and accepts a simple query."""
+    """Verify that PostgreSQL is reachable through the application engine."""
     try:
-        connection = await asyncpg.connect(
-            host=os.environ["DB_HOST"],
-            port=int(os.environ.get("DB_PORT", "5432")),
-            user=os.environ["DB_USER"],
-            password=os.environ["DB_PASSWORD"],
-            database=os.environ["DB_NAME"],
-            timeout=3,
-        )
-        try:
-            await connection.execute("SELECT 1")
-        finally:
-            await connection.close()
-    except (KeyError, ValueError, OSError, TimeoutError, asyncio.TimeoutError, asyncpg.PostgresError, asyncpg.InterfaceError):
+        await asyncio.wait_for(_ping_database(app.state.db_engine), timeout=3)
+    except (OSError, TimeoutError, SQLAlchemyError):
         logger.warning("PostgreSQL readiness check failed")
         return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
