@@ -2,9 +2,9 @@
 
 ## 1 Purpose and implementation status
 
-CodeFlowAtlas helps students and AI-assisted builders understand small real applications. It connects a supported GitHub or Bitbucket repository link to a source-linked API or feature flow and an AI guide that explains each step and answers questions. Supported isolated runtimes later add measured requests, errors, and optimization ideas; bounded load and failure experiments are an optional deeper lab. This guide translates the [project specification](project-specification.md) into implementable boundaries and contracts. It is intended for engineers and coding assistants who will build or review the system.
+CodeFlowAtlas helps students and AI-assisted builders understand small real applications. It connects a supported GitHub or Bitbucket repository link to a source-linked API or feature flow and an AI guide that explains each step and answers questions. Supported isolated runtimes later add a disposable synthetic database, an AI-proposed and reviewed test journey, measured requests and SQL calls, reproducible issues, and optimization ideas; bounded load and failure experiments are an optional deeper system design lab. This guide translates the [project specification](project-specification.md) into implementable boundaries and contracts. It is intended for engineers and coding assistants who will build or review the system.
 
-**Current status:** the repository has a Next.js foundation page, FastAPI health API, PostgreSQL readiness check, and a three-service Compose stack. The remaining product components, database schema, and API payloads in this guide are **proposed designs**, not claims that working software exists. Before implementing a feature, inspect the current repository and record any design change in `docs/decisions/`.
+**Current status:** the repository has a Next.js foundation page, FastAPI health API, PostgreSQL readiness check, and a three-service Compose stack. A standalone Python/FastAPI analyzer and IR prototype exist for a bundled fixture; authentication models, migration, and routes are under development. Repository import, connected graph UI, AI guide, synthetic runtime, bot, traces, and experiments in this guide are **proposed designs**, not claims that working software exists. Before implementing a feature, inspect the current repository and record any design change in `docs/decisions/`.
 
 The product path to preserve is:
 
@@ -13,12 +13,13 @@ Supported GitHub or Bitbucket URL → pinned repository revision
   → safe static analysis
   → selected API or feature and confidence-labeled flow graph/mind map
   → source-grounded AI explanation and learner questions
-  → optional isolated instrumented target and observed timings
+  → optional disposable synthetic target and reviewed AI test journey
+  → observed request and database timings with replayable issues
   → issue explanation and testable optimization option
   → optional bounded load/fault lab and before/after comparison
 ```
 
-The first useful path supports a FastAPI fixture and source-grounded AI explanation without a running target. Flask and Django, additional languages, Kafka, vector search, broad failure injection, and hosted deployment are extensions with their own acceptance criteria.
+The first useful path supports a FastAPI fixture and source-grounded AI explanation without a running target. The next analyzer milestone connects a React or Next.js frontend action to a FastAPI route. The [framework support roadmap](analysis/framework-support-roadmap.md) defines later backend families and capability gates; Kafka, vector search, broad failure injection, and hosted deployment remain separate extensions.
 
 ## 2 Repository map and ownership
 
@@ -27,8 +28,8 @@ The first useful path supports a FastAPI fixture and source-grounded AI explanat
 | `frontend` | Next.js views, navigation, graph and trace visualizations | Consumes public API schemas; does not parse source or compute findings |
 | `backend` | FastAPI API/BFF and modular domain services | Authorizes requests, owns durable state transitions, exposes stable APIs |
 | `workers/analyzer` | Bounded static analysis jobs | Reads imported source as data; never imports or executes target modules |
-| `workers/traffic` | k6 orchestration and controlled fault runs | Can reach only approved isolated targets |
-| `workers/ai` | Evidence selection and explanation jobs | Receives scoped evidence; cannot execute repository instructions |
+| `workers/traffic` | Reviewed API journeys, k6 orchestration, and controlled fault runs | Can reach only approved isolated targets and synthetic dependencies |
+| `workers/ai` | Evidence selection, journey proposals, synthetic data proposals, and explanations | Receives scoped evidence; cannot execute repository instructions or widen runner permissions |
 | `packages/ir` | Versioned entity and edge contract | Language analyzers emit this shape; graph consumers do not depend on Python AST nodes |
 | `packages/schemas` | Shared API and event contracts | Changes require compatibility review and contract tests |
 | `analyzers/python` | Python parser, symbol resolution, FastAPI discovery | Emits IR and warnings with provenance and confidence |
@@ -52,13 +53,13 @@ FastAPI API/BFF ─────── PostgreSQL product records
 Workers: analyzer, experiment, AI
   │          │             │
   │          │             └── scoped evidence and approved model provider
-  │          └── isolated target network and fault controller
+  │          └── disposable database, isolated target network, deterministic test and fault runners
   └── read-only imported source workspace
 
 Instrumented target ── OpenTelemetry collector ── raw trace backend
 ```
 
-There are three important trust zones. **Imported source** is untrusted input for parsing. **Runtime target** is executable code and must be isolated from the host, product database, and unauthorized network destinations. **AI context** may contain malicious text from a repository and must remain data, not instructions. Every API, job, and storage query is scoped to a project and pinned repository revision where applicable.
+There are three important trust zones. **Imported source** is untrusted input for parsing. **Runtime target** is executable code and must be isolated from the host, product database, original target database, and unauthorized network destinations; its database and records are disposable and synthetic. **AI context** may contain malicious text from a repository and must remain data, not instructions. Every API, job, and storage query is scoped to a project and pinned repository revision where applicable.
 
 PostgreSQL is the system of record. Redis may support progress, cache, rate limits, and live update fan-out; a Redis loss must not erase completed results. Raw high-volume telemetry belongs in a trace backend with stable references from PostgreSQL. Kafka is introduced only after a concrete need for durable event streams and independent consumers has been demonstrated.
 
@@ -119,6 +120,10 @@ Dynamic imports, reflection, decorator-generated routes, aliases, and dependency
 ### Fixture expectations
 
 For every supported syntax pattern, add a small fixture repository and expected endpoints, entities, edges, source ranges, confidence, and warnings. Include negative cases such as malformed files, dynamic registration, aliasing, and deliberately unresolved calls. Repeat analysis of the same revision should yield equivalent normalized output for the same analyzer version.
+
+### Additional frontend and backend analyzers
+
+Keep framework parsing behind analyzer adapters that emit the same versioned IR. For React and Next.js, distinguish client actions, server data loading, and route handlers. Record the frontend request call site separately from the backend endpoint. Link them statically only when HTTP method, normalized path, and base URL or API configuration can be resolved. Unknown proxies, computed URLs, and ambiguous matches produce visible unresolved edges. Add paired frontend/backend fixtures with expected links and warnings. Report capability per framework as detection, catalog, source flow, observed flow, or test lab; reaching one level never implies the next. See the [framework support roadmap](analysis/framework-support-roadmap.md).
 
 ## 7 Intermediate representation contract
 
@@ -186,13 +191,27 @@ Version event payloads and document ordering scope if a separate event bus is ad
 
 ## 9 Runtime instrumentation and trace mapping
 
+### Disposable target and synthetic dataset
+
+The initial runner supports only the documented FastAPI fixture. Source-only import does not start the target. For an approved runtime job, create a new short-lived target network and database, apply the target's verified migrations or model-derived schema, and insert versioned synthetic seed records and test accounts. An AI model may propose seed values or a schema adapter, but validate them against the actual target and migration history before execution. If the application cannot start and pass a readiness check with the generated schema, mark runtime testing unsupported for that revision; do not infer a result. Never request, accept, mount, or connect to the imported application's original or production database, credentials, or data dump. External calls need supported local test doubles or an explicit deny policy. Record the dataset generator version, seed, row counts, migration fingerprint, target image or build digest, and teardown result.
+
+A user-installed local runner may host this disposable target on the learner's own machine. The browser cannot start local containers without that opt-in component. A hosted runner is a later design with separate isolation, cost, and retention controls. In either mode, the product database, runner control plane, target process, and target database have separate network and credential boundaries.
+
 The supported fixture runs in an isolated target environment and exports OpenTelemetry spans through a collector. Instrument inbound HTTP, meaningful service operations, database access, Redis or messaging if used, and outbound HTTP. Preserve `trace_id`, `span_id`, `parent_span_id`, service, operation, timestamps, duration, status, errors, and sanitized attributes.
 
 The trace explorer reads span relationships and shows a waterfall with total request duration, database query count and durations, errors, and the recorded execution order. It may link a span to an IR entity when instrumentation records a stable symbol or a verified mapping rule resolves it. An automatic database span may reveal a dependency and timing without identifying the exact source line. Show the strongest supported location and indicate when it is approximate or unavailable. Sampling and retention must be visible before results are used as evidence.
 
 Do not send full bodies, credentials, raw authorization headers, raw database row values, or unbounded query parameters to the trace backend. A trace summary in PostgreSQL can provide search and project scoping while raw spans remain in specialized storage.
 
+Database spans measure the client-observed operation interval. If a learner opens a query plan, run a safe, supported diagnostic only against the disposable test database, and label its dataset size and plan time separately from the traced request. Do not present query timings or plans as portable predictions for a different dataset or machine.
+
 ## 10 Traffic, edge-case, and fault runs
+
+### AI-proposed student journey
+
+The AI bot reads only the selected revision's API catalog, supported schemas, fixtures, and scoped source evidence. It proposes a finite journey with ordered calls or browser steps, synthetic accounts and records, expected assertions, and any state-changing effects. The review screen shows target identity, action allowlist, maximum request count, rate, virtual users, duration, data reset behavior, and missing dependencies. The learner authorizes the scenario and target once. The AI cannot modify those limits during execution. A deterministic runner revalidates every action against the saved plan, records request and trace IDs, evaluates assertions, and produces a replayable report. AI can explain the report afterward, but only recorded responses, traces, and deterministic checks establish a failure.
+
+Start with one API journey on the fixture. Browser-driven journeys can follow when a supported frontend and test runner exist. Failed setup, unknown authentication, unresolved schema, or external side effects yield an explicit unsupported result. Do not turn a generated plan into a runnable command or let imported repository text become runner instructions.
 
 A traffic scenario includes approved target ID, environment label, HTTP method/path, payload reference, virtual users or arrival rate, ramp-up, duration, headers/auth strategy, success criteria, and safety limits. k6 is the proposed runner. Save tool version, exact scenario definition, target revision, resource limits, start/end status, and output artifacts. Each run generates new immutable results for comparison.
 
@@ -230,8 +249,8 @@ The [security design](security/security-and-trust-boundaries.md) covers the full
 | Git URL | Scheme and host policy, SSRF prevention, pin revision, size/time bounds, no credential logging |
 | Archive | Path normalization, traversal and symlink checks, expanded-size and file-count limits |
 | Analyzer | Parse as data, no imports or commands from target, bounded CPU/memory/time, read-only mount |
-| Runtime target | Non-root isolated container, restricted network, resource and lifetime limits |
-| Traffic/fault run | Explicit environment label, allowlisted target, bounded scenario, cleanup and audit |
+| Runtime target | Non-root isolated container, synthetic disposable database, no original credentials, restricted network, resource and lifetime limits |
+| Bot/traffic/fault run | Reviewed immutable action plan, explicit environment label, allowlisted target, bounded scenario, cleanup and audit |
 | API query | Authentication, project authorization, pagination, data minimization |
 | Trace and AI | Attribute sanitization, secret scanning, scoped retrieval, prompt/data separation |
 
@@ -264,10 +283,11 @@ Build by dependency, with a working and testable outcome at each stage:
 1. **Foundation:** project records, migrations, auth, API conventions, local container setup, CI, and a minimal UI shell.
 2. **Safe source understanding:** import, bounded file scanner, Python AST extraction, IR validation, FastAPI route discovery, persisted API catalog, and fixture regression tests.
 3. **Graph navigation:** filtered graph API, source links, confidence labels, warnings, and WebSocket or polling progress.
-4. **Observed behavior:** isolated fixture target, OpenTelemetry collection, trace search, waterfall, and truthful source mapping.
-5. **Experiment loop:** saved baseline and stress runs, one bounded fault, comparable metrics, deterministic finding, and rerun support.
-6. **Grounded explanation:** scoped retrieval, evidence IDs, observed/inferred/unknown response structure, and prompt-injection tests.
-7. **Extensions:** additional frameworks, deeper analyzers, distributed event transport, richer architecture views, cloud hosting, and new languages only when their acceptance checks are defined.
+4. **Source-grounded explanation:** scoped source retrieval, file and line citations, explicit uncertainty, and prompt-injection tests without a running target.
+5. **Observed behavior:** isolated fixture target, validated disposable schema and synthetic seed data, OpenTelemetry collection, trace search, waterfall, and truthful source mapping.
+6. **Bot and experiment loop:** one reviewed student journey with deterministic replay and issue evidence; then saved baseline and stress runs, one bounded fault, comparable metrics, deterministic finding, and rerun support. Extend AI explanations with trace and metric evidence at this stage.
+7. **Full-stack source flow:** analyze a React or Next.js frontend that calls a FastAPI backend; connect a selected action to the matching route with evidence on both sides and visible unknowns. Then add Express as a separate backend analyzer. Each framework earns its own capability level through fixtures and user-visible results.
+8. **Further extensions:** additional frameworks, deeper analyzers, distributed event transport, richer architecture views, cloud hosting, and new languages only when their acceptance checks are defined.
 
 A feature is complete when a user can perform it, results carry provenance, unsupported cases are visible, failure is safe, tests verify the contract, and docs match the running software. The [acceptance criteria](delivery/acceptance-criteria.md) define the first complete product demonstration.
 

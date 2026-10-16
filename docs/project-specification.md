@@ -2,9 +2,9 @@
 
 ## Purpose and reader guide
 
-CodeFlowAtlas helps students and AI-assisted builders understand and improve small real applications through interactive visualizations. A supported GitHub or Bitbucket link leads to a source-linked flow graph or mind map and an AI guide that explains selected steps; an approved isolated runtime can add trace waterfalls, request and database timings, measured issues, and testable optimization options. Bounded load and fault experiments add charts in a deeper learning mode. This specification defines the product vision, complete system concept, delivery boundaries, architecture, data contracts, safety controls, and acceptance criteria. It is written so a developer, reviewer, or coding assistant can understand the intended product without relying on prior conversation.
+CodeFlowAtlas helps students and AI-assisted builders understand and improve small real applications through interactive visualizations. A supported GitHub or Bitbucket link leads to a source-linked flow graph or mind map and an AI guide that explains selected steps. An optional isolated runtime adds synthetic-data test journeys proposed by an AI bot, trace waterfalls, request and database timings, reproducible issues, and testable optimization options. Bounded load and fault experiments add charts in a deeper system design lab. This specification defines the product vision, complete system concept, delivery boundaries, architecture, data contracts, safety controls, and acceptance criteria. It is written so a developer, reviewer, or coding assistant can understand the intended product without relying on prior conversation.
 
-The central workflow is: **repository link → pinned source → select an API or feature → explore its flow graph and mind map → inspect code and ask the AI guide → optionally view trace and timing visualizations → investigate an issue → test an improvement**. A useful implementation must make each transition inspectable and reproducible. The interface should never imply that a statically inferred call was observed at runtime, or that an AI hypothesis is a measured fact.
+The central workflow is: **repository link → pinned source → select an API or feature → explore its flow graph and mind map → inspect code and ask the AI guide → optionally prepare a synthetic isolated target → review and run an AI-proposed test journey → inspect measured traces and SQL timing → investigate an issue → test an improvement**. A useful implementation must make each transition inspectable and reproducible. The interface should never imply that a statically inferred call was observed at runtime, or that an AI hypothesis is a measured fact.
 
 ## 1 Product vision
 
@@ -14,11 +14,11 @@ Students and AI-assisted builders can produce working small applications without
 
 ### Vision
 
-CodeFlowAtlas lets a learner submit a supported GitHub or Bitbucket URL, select an API or feature, and explore a source-linked flow graph or mind map of its handler, functions, dependencies, database access, and response. An integrated AI guide explains selected nodes and edges in plain language, answers questions, cites inspected source, and identifies unresolved relationships. This source-only visual path is useful even when the repository has no runnable database. When a supported application runs in an approved isolated environment, the same workspace adds an observed trace waterfall, timings, and errors; the AI guide can explain a measured issue and a testable fix. A separate controlled lab uses charts to show what happens under bounded concurrent traffic or a dependency fault.
+CodeFlowAtlas lets a learner submit a supported GitHub or Bitbucket URL, select an API or feature, and explore a source-linked flow graph or mind map of its handler, functions, dependencies, database access, and response. An integrated AI guide explains selected nodes and edges in plain language, answers questions, cites inspected source, and identifies unresolved relationships. This source-only visual path is useful even when the repository has no runnable database. When a supported application runs in an approved isolated environment with a disposable synthetic dataset, the same workspace adds an AI test bot that proposes reviewable journeys, observed trace waterfalls, timings, and errors. The guide explains measured issues and testable fixes. A separate controlled lab uses charts to show what happens under bounded concurrent traffic or a dependency fault. Optional flow diffs and guided prediction exercises deepen the learning experience.
 
 ### Target users and value
 
-The primary users are students and AI-assisted builders, including vibe coders, working on small real Python applications. They need to move from “AI wrote this, but I do not understand the flow” to a verifiable explanation of one feature and a place to ask follow-up questions. When a supported runtime exists, they can also diagnose an error or slowdown and test a change. Educators, onboarding teams, and developers reviewing unfamiliar code are secondary users.
+The primary users are students and AI-assisted builders, including vibe coders, working on small real web applications with a frontend, backend, or both. They need to move from “AI wrote this, but I do not understand the flow” to a verifiable explanation of one feature and a place to ask follow-up questions. When a supported runtime exists, they can also diagnose an error or slowdown and test a change. Educators, onboarding teams, and developers reviewing unfamiliar code are secondary users.
 
 ### Product principles
 
@@ -29,7 +29,9 @@ The primary users are students and AI-assisted builders, including vibe coders, 
 - **One reproducible path first.** A complete FastAPI demonstration is more valuable than superficial support for many frameworks.
 - **Uncertainty is visible.** Static relationships carry confidence and provenance; missing telemetry remains missing.
 - **Safety is part of the workflow.** Repository inspection does not execute imported code. Runtime tests use isolated targets and explicit authorization.
+- **Synthetic runtime data.** A validated disposable schema and generated seed data support tests; imported applications never receive an original or production database connection.
 - **Language independence at the data boundary.** Python is the first deep analyzer; the shared intermediate representation supports later analyzers.
+- **Full-stack path with explicit limits.** A supported frontend action and backend endpoint may be linked when method, path, and API configuration resolve; otherwise the graph shows an unresolved boundary. Support is reported per framework and capability, not as a blanket repository claim.
 
 ## 2 Product scope
 
@@ -45,10 +47,18 @@ The primary users are students and AI-assisted builders, including vibe coders, 
 8. Offer optional repeatable, bounded traffic and edge-case scenarios against an allowlisted isolated target, including a configurable 100-concurrent-virtual-user learning scenario. Record configuration, achieved load, timings, errors, and resource metrics.
 9. Inject at least one controlled dependency failure or delay, compare behavior, and generate rule-based bottleneck findings with evidence.
 10. Retain revisions and experiment runs so users can compare and reproduce results.
+11. Offer an AI test bot that proposes a browser or API journey from discovered routes and schemas, presents its actions and expected outcomes for review, and has a deterministic runner execute only the approved scenario against the isolated target.
+12. Create a disposable target database using validated models, migrations, or fixture definitions and synthetic seed data. AI-generated schema or values are proposals to validate against the runnable application, not facts inferred from source.
+13. Provide optional flow diffs across revisions and guided prediction exercises that link answers back to inspected source or measured runs.
+14. Expand to supported frontend and backend framework combinations. First connect React/Next.js client or server data loading to a FastAPI route; then evaluate Express and other frameworks through independent fixtures and capability gates.
+15. Provide linked repository-overview, feature/API-flow, and function-call views. Navigation between levels preserves the revision, source evidence, confidence, and unresolved boundaries.
+16. Answer natural-language code questions with relevant source excerpts and a focused visualization when supported by the selected revision. Offer editable live query suggestions from discovered entities, endpoints, and curated examples.
+17. Export a selected evidence-labelled diagram as SVG or PNG for documentation and collaboration, with project revision, legend, and an accessible text outline.
+18. Provide an optional, inspectable LLM prompt draft containing the selected question and bounded, cited evidence. The learner edits or copies it deliberately; secret filtering and project access rules apply.
 
 ### Explicit boundaries
 
-The first implementation proves the path on a FastAPI fixture before accepting external repository URLs. The intended complete workflow supports public GitHub and Bitbucket links for supported Python/FastAPI repositories. Importing source does not guarantee that an arbitrary application can be executed or instrumented. Runtime tracing and load tests require approved isolated targets with resource, duration, and destination limits. Flask and Django route discovery can follow as separate analyzers. JavaScript/TypeScript, Java, and Go are future analyzers using the same IR contract. Production deployment, large-scale distributed processing, automatic architecture classification, and broad fault injection are extensions. Imported applications are never run on the host during analysis. CodeFlowAtlas does not autonomously modify a user's repository, expose raw database values or secrets, or claim that an LLM can prove runtime behavior.
+The first implementation proves the path on a FastAPI fixture before accepting external repository URLs. The next full-stack slice adds JavaScript/TypeScript React and Next.js frontend analysis linked to FastAPI; Express follows as a second backend family when its fixtures justify support. NestJS, Flask, and Django are separate later adapters; Java/Spring and Go are candidates rather than commitments. The [framework support roadmap](analysis/framework-support-roadmap.md) defines detection, catalogue, source-flow, observed-flow, and test-lab levels so a framework is never labelled fully supported from a single route detector. Importing source does not guarantee that an arbitrary application can be executed or instrumented. Runtime tracing, bot journeys, and load tests require a supported approved isolated target with a validated disposable schema, synthetic data, resource, duration, and destination limits. A local lab needs a user-installed runner; hosted execution is a later operating model. When setup or schema validation fails, show source analysis and the missing requirement rather than a fabricated runtime result. Production deployment, large-scale distributed processing, automatic architecture classification, and broad fault injection are extensions. Imported applications are never run on the host during analysis. CodeFlowAtlas does not autonomously modify a user's repository, connect to original or production databases, expose raw values or secrets, load-test arbitrary live sites, or claim that an LLM can prove runtime behavior.
 
 ## 3 User journeys
 
@@ -56,9 +66,15 @@ The first implementation proves the path on a FastAPI fixture before accepting e
 
 The learner creates a project, submits a supported GitHub or Bitbucket URL, pins a revision, and starts analysis. The UI shows progress, detected language and framework, warnings, discovered endpoints, and the graph. Selecting `POST /checkout` reveals its handler, source location, request and response models when resolvable, authentication indicators, downstream calls, detectable database reads or writes, and confidence for each relationship. The learner can ask the AI guide why a function is called or where a value comes from. Answers link to inspected source lines and say when the path is inferred or unresolved. This experience works without a running target; source analysis does not prove that a call executed.
 
+For a supported full-stack repository, the learner may instead select a page action such as “Place order.” The graph begins at the React/Next.js component or server data load, follows a resolvable HTTP method and path to the backend endpoint, and continues through the backend flow. Frontend-only and backend-only projects still show useful partial paths. Dynamic URLs, unknown proxies, and unsupported framework constructs remain visible as unresolved boundaries, not fabricated cross-stack edges.
+
 ### Runtime diagnosis
 
-The user launches a supported target in isolation with tracing, sends a request, and opens the waterfall. The trace contains total request timing, status, errors, parent-child relationships, and sanitized database query spans with counts and durations where instrumentation supports them. Source mapping is shown only when instrumentation or reliable metadata identifies a file, function, or entity. The user can compare trace evidence with the static graph and see where they differ. Raw row values and sensitive query parameters are not displayed.
+The user launches a supported target in isolation with tracing and a disposable synthetic dataset, sends a request, and opens the waterfall. The trace contains total request timing, status, errors, parent-child relationships, and sanitized database query spans with counts and durations where instrumentation supports them. These spans measure calls as seen by the application; a database-server execution plan is separate evidence and is requested only on the disposable database. Source mapping is shown only when instrumentation or reliable metadata identifies a file, function, or entity. The user can compare trace evidence with the static graph and see where they differ. Raw row values and sensitive query parameters are not displayed.
+
+### AI test journey
+
+The learner asks the bot to test a selected API or short user journey. It proposes steps, synthetic accounts and records, expected outcomes, and a bounded target configuration from verified endpoint schemas and fixtures. The learner reviews the proposed run once. A deterministic API or browser runner executes only those approved actions on the disposable target, stores request and trace evidence, and produces a replayable issue report. If a schema, dependency, or safe test credential cannot be validated, the bot reports the missing setup and does not claim the journey ran.
 
 ### Controlled experiment
 
@@ -80,6 +96,8 @@ The frontend communicates through a stable API/BFF boundary. Analysis, traffic, 
 Next.js UI → FastAPI API/BFF → PostgreSQL
                          → analysis worker → IR and graph
                          → trace ingestion → trace backend
+                         → synthetic-data builder → disposable target database
+                         → reviewed test runner → isolated target
                          → traffic/failure worker → isolated target
                          → findings engine → AI explanation service
 ```
@@ -118,6 +136,8 @@ Representative product APIs include project and repository creation, starting an
 
 The supported target application exports OpenTelemetry spans for inbound HTTP requests and instrumented downstream operations such as database, Redis, messaging, and external HTTP. A span contains trace ID, span ID, parent span ID, service and operation names, timestamps, duration, status, error details, and selected sanitized attributes. Trace collection is the source of truth for observed timings.
 
+An execution plan may be inspected only against the disposable test database when the learner selects a specific query. Distinguish client-observed database span duration from server-side plan timing, and record dataset size, indexes, query shape, and instrumentation limits. Do not run diagnostic SQL against an imported project's original database.
+
 The trace explorer presents a request timeline, waterfall, error markers, service map, database query count and duration, and links to code where mapping is supported. It can show the route from endpoint to a database operation and response only to the extent the static and runtime evidence supports each connection. An auto-instrumented database span may identify a query and service without an exact source line; the UI must say so. Span retention and sampling are explicit. Avoid storing secrets, personal data, raw row values, full request bodies, or unbounded SQL parameters in span attributes.
 
 ## 9 Traffic, edge cases, and failure experiments
@@ -128,6 +148,10 @@ Metrics include requests per second, throughput, p50/p95/p99 latency, errors, ti
 
 The edge-case engine starts with deterministic inputs derived from resolvable schemas: missing required fields, invalid enum values, nulls, malformed IDs, boundary values, duplicate requests, pagination extremes, wrong content type, and expired tokens when a safe test credential exists. Every case stores expected outcome, actual outcome, trace ID, and verdict.
 
+The AI test bot proposes a finite scenario, not arbitrary tool use. It may use a discovered API catalog, OpenAPI metadata when present, route source, and test fixtures to suggest a student-like journey. The learner sees the target identity, action list, synthetic data, expected outcomes, maximum requests and duration, and any state-changing steps before authorizing a run. A deterministic runner executes the saved plan; AI interprets the resulting evidence afterward. For browser journeys, a browser test runner can be added after the API journey works. A failed assertion, exception, timeout, or measured degradation becomes a reproducible issue record with request, trace, target revision, synthetic dataset version, and replay instructions.
+
+All runtime and load runs use a disposable database and synthetic seed data. Prefer the target's own validated migrations, models, and test fixtures to create schema; an AI-generated schema proposal must be checked against the target before execution and must never be treated as an exact reconstruction of a missing original database. External dependencies use explicit test doubles or local fixtures when supported. If a valid runnable schema or safe dependency substitute is unavailable, mark that runtime capability unsupported for the repository while preserving source-only analysis. A local runner requires installation and user authorization; the web application cannot start containers on a visitor's computer by itself. Hosted runners are a later product and cost decision.
+
 Failure injection is opt-in and restricted to isolated test targets. The first supported fault can be dependency latency or an HTTP dependency error. Later faults may include database or Redis unavailability, message delay or duplication, connection-pool pressure, and resource pressure. Each run requires a bounded duration, cleanup, environment label, and audit record. The UI must not inject faults into arbitrary external systems.
 
 ## 10 Findings and AI assistant
@@ -135,6 +159,8 @@ Failure injection is opt-in and restricted to isolated test targets. The first s
 The findings engine is deterministic before any AI interpretation. Initial rules include dominant cumulative or exclusive span duration, repeated or slow database calls, high error concentration, and p99 growth under load. Later rules can cover queue lag, pool saturation, cache misses, and retry amplification. A finding contains rule ID and version, severity, evidence IDs, sample size, comparison window, measured values, uncertainty, and a plain-language conclusion. A finding such as “database spans represented 78% of measured request duration across 1,000 traces” is valid only when those records exist. Optimization options follow findings and remain hypotheses until a comparable rerun measures the effect.
 
 The AI guide accepts a constrained evidence bundle. Its first mode uses repository metadata, selected source snippets, IR paths, endpoint details, and analysis warnings to explain a selected feature and answer learner questions without any runtime setup. It cites inspected file and line references, labels inferred or unresolved calls, and does not claim a function ran merely because a static edge exists. When traces, metrics, and findings are available, the guide can also explain an observed bottleneck, likely causes, test ideas, and architecture tradeoffs. It labels observations, inferences, and unknowns separately.
+
+The AI test bot has a different role: it drafts a constrained scenario and synthetic records from verified source and schemas. It cannot grant itself new targets, credentials, network access, destructive actions, or load limits. The runner produces execution facts, deterministic checks decide pass or fail, and the AI explains the result with citations. A learning mode may ask the student to predict a path, query, or failure before revealing the same source and runtime evidence. Flow diffs across revisions should distinguish changed static edges from observed behavioral differences.
 
 Retrieval can index README files, architecture documentation, selected source ranges, endpoint descriptions, and findings using metadata including project ID, revision SHA, path, line range, entity ID, and document type. Secret scanning and access checks run before indexing and retrieval. Embeddings and a vector store are optional until keyword or structured retrieval proves insufficient.
 
@@ -146,7 +172,9 @@ If the architecture adopts Kafka, candidate events include analysis requested/pr
 
 ## 12 Frontend experience
 
-The primary screens are project dashboard, repository link import, analysis progress, API or feature selector, interactive flow graph and mind map, source viewer, and grounded AI question panel. The first useful interface works with source evidence alone. Later screens add a trace waterfall and database timing explorer, issue explanation, optional 100-user traffic and failure charts, findings, optimization options, run comparison, and project settings. The [visualization system](frontend/visualization-system.md) defines evidence styling, node interactions, and graph limits. React Flow can render focused graph slices; charts should expose units, sample sizes, and comparison conditions.
+The primary screens are project dashboard, repository link import, analysis progress, searchable API or feature selector, interactive flow graph and mind map, source viewer, and grounded AI question panel. The first useful interface works with source evidence alone. Later screens add a synthetic test setup review, AI-proposed journey review, replayable issue report, trace waterfall and database timing explorer, optional 100-user traffic and failure charts, findings, optimization options, run comparison, guided learning exercises, and project settings. The [visualization system](frontend/visualization-system.md) defines evidence styling, node interactions, and graph limits. React Flow can render focused graph slices; charts should expose units, sample sizes, and comparison conditions.
+
+The visual workspace moves between a source-grounded repository overview, selected feature path, and supported function-call detail. Natural-language questions return cited code and a focused graph when evidence exists; live suggestions help form questions without asserting an unverified path. The user can export a selected diagram with its revision and uncertainty labels. An optional prompt draft for further LLM analysis shows exactly which bounded, filtered evidence it includes before the user copies or sends it.
 
 The interface should lead a learner from a repository to a selected feature's visual code and data path, then to source evidence and AI questions for a selected node or edge. A supported runtime can extend the same workspace with an observed trace waterfall, real timings, a measured issue, and a testable improvement; the optional lab adds controlled load and fault charts. Empty states explain when a capability requires instrumentation or an isolated target. Error states name the failed step and preserve partial results when safe.
 
@@ -155,6 +183,8 @@ The interface should lead a learner from a repository to a selected feature's vi
 Treat imported repositories, archives, commit metadata, documentation, HTTP responses, and retrieved text as untrusted input. Main threats are path traversal, archive bombs, unsafe code execution, SSRF, credential leakage, prompt injection, dependency compromise, and cross-project data exposure.
 
 Controls include archive validation, bounded scanning, non-root isolated workers, read-only source mounts where possible, CPU/memory/time limits, egress restrictions, outbound allowlists, authentication, project-level authorization, audit logs, secret scanning, and separation of data from AI instructions. Runtime target execution occurs only in a container or equivalent sandbox with explicit resource and network policy. Traffic and faults require environment labels and target allowlists. The assistant never executes commands suggested by repository content.
+
+The product must not accept an original or production database URL or credentials for a target run. Synthetic data generation and schema validation run within the target's disposable environment. Bot actions are restricted to a reviewed scenario and target; state-changing steps and load limits are visible before execution. If a generated dataset, test double, or instrumented target cannot be validated, no runtime or performance claim is produced.
 
 ## 14 Quality and verification
 
@@ -167,8 +197,8 @@ The platform itself records analysis duration, files analyzed, failures, queue d
 1. **Foundation:** repository structure, project model, PostgreSQL migrations, API conventions, local containers, authentication, and CI.
 2. **Static understanding:** safe import, Python scanner, AST extraction, versioned IR, FastAPI route discovery, fixture tests, API catalog, and graph navigation.
 3. **Source-grounded AI guide:** explain a selected feature step by step, answer learner questions with file and line citations, and label inferred or unresolved paths without requiring a running app.
-4. **Observed behavior:** isolated example target, OpenTelemetry collection, trace summaries, waterfall, honest source mapping, and AI explanations of measured issues.
-5. **Optional experiments:** repeatable baseline and stress runs, selected edge cases, one bounded fault, metrics comparison, and evidence-backed findings.
+4. **Observed behavior:** disposable schema and synthetic seed data for one isolated example target, OpenTelemetry collection, trace summaries, waterfall, honest source mapping, and AI explanations of measured issues.
+5. **AI test bot and optional experiments:** reviewable student journey and deterministic replay first; then repeatable baseline and stress runs, selected edge cases, one bounded fault, metrics comparison, and evidence-backed findings.
 6. **Expansion:** Flask and Django depth, more faults and rules, architecture views, distributed event transport, cloud deployment, and additional language analyzers when justified.
 
 The recommended repository layout is `frontend`, `backend`, `workers/analyzer`, `workers/traffic`, `workers/ai` when needed, `packages/ir`, `packages/schemas`, `analyzers/python`, `infra`, `fixtures`, `tests`, and `docs`. Modules should remain separable without forcing service boundaries before operational need exists.
@@ -177,7 +207,7 @@ The recommended repository layout is `frontend`, `backend`, `workers/analyzer`, 
 
 The first useful product demonstration is accepted when a learner can import a supported FastAPI repository without executing its code; select an endpoint; follow its route, handler, functions, detectable data access, and response in an interactive graph or mind map with clickable source links; and ask the AI guide about a selected step, receiving a cited, uncertainty-aware answer without a running application or database. A text step view must provide the same essential flow. The workflow must pass automated tests in CI and show unsupported or incomplete paths.
 
-The runtime diagnosis demonstration adds an approved isolated target, a real request trace and database timings, a measured issue, and a testable improvement option. The optional system design lab adds bounded load and fault scenarios and a reproducible before/after comparison. Neither source-only explanations nor AI suggestions may be presented as measured behavior or verified fixes.
+The runtime diagnosis demonstration adds an approved isolated target with a validated disposable schema and synthetic data, a real request trace and database timings, a measured issue, and a testable improvement option. The AI test bot demonstration adds one reviewed journey whose deterministic runner can replay a failure and cite request, trace, dataset, and revision evidence. The optional system design lab adds bounded load and fault scenarios and a reproducible before/after comparison. No original or production database participates. Neither source-only explanations nor AI suggestions may be presented as measured behavior or verified fixes.
 
 Additional framework, language, infrastructure, or AI capabilities are complete only when their own fixtures, safety checks, and user-facing evidence meet the same standard. Resume and interview claims should reflect behavior and measurements actually demonstrated by the project.
 

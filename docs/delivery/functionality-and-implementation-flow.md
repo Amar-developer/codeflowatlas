@@ -4,13 +4,13 @@ This document is the practical map for building CodeFlowAtlas. It explains what 
 
 ## Product in one sentence
 
-CodeFlowAtlas helps a student or AI-assisted builder understand a small real application visually: paste a supported repository link, select an API or feature, explore its source-linked flow graph and mind map, and ask an AI guide about selected steps. If a supported application can run safely, the learner can add a trace waterfall, timing and error views, and optional load charts to investigate and test an improvement.
+CodeFlowAtlas helps a student or AI-assisted builder understand a small real application visually: paste a supported repository link, select an API or feature, explore its source-linked flow graph and mind map, and ask an AI guide about selected steps. If a supported application can run safely against a disposable synthetic dataset, an AI test bot can propose a reviewed student journey and a controlled runner can produce replayable issues, trace waterfalls, timing and error views, and optional load charts to investigate and test an improvement.
 
 ## Where login fits
 
 There are two distinct meanings of login:
 
-1. **CodeFlowAtlas account login:** lets a person access their own projects, repository revisions, traces, and experiments. This is an access-control feature, not the main product result. A single-user local fixture demonstration can precede it; account and project authorization must be in place before a multi-user or public service accepts private repositories. The authentication code preserved in `legacy-auth-foundation/` is a separate prototype and is not connected to the current API.
+1. **CodeFlowAtlas account login:** lets a person access their own projects, repository revisions, traces, and experiments. This is an access-control feature, not the main product result. A single-user local fixture demonstration can precede it; account and project authorization must be in place before a multi-user or public service accepts private repositories. The active backend now has auth models and routes under development; the code preserved in `legacy-auth-foundation/` is a separate earlier prototype.
 2. **Login in an imported application:** an endpoint such as `POST /login` may be discovered and displayed like any other route. Static analysis can report its handler and detectable dependencies; it must not execute the target app, attempt to sign in, collect credentials, or claim the route works. A later approved runtime experiment may use a controlled fixture account in an isolated target.
 
 Login alone does not demonstrate the CodeFlowAtlas idea. The first visible product result should be a discovered endpoint with a real source location.
@@ -26,7 +26,9 @@ Open workspace
   → select an API or feature and explore its graph or mind map
   → click a node or edge to inspect source and ask the AI guide about it
   → see unresolved steps and unsupported code clearly
-  → optionally run an approved, isolated instrumented target
+  → optionally prepare a disposable schema and synthetic seed data
+  → review an AI-proposed test journey against an approved isolated target
+  → run that finite journey with a deterministic test runner
   → inspect a real trace waterfall, database timings, and errors
   → ask the AI guide to explain one observed issue and a testable change
   → optionally run bounded load or fault experiments and inspect charts
@@ -40,13 +42,20 @@ The main navigation path is **repository link → revision → API or feature �
 | Functionality | User action and visible result | System responsibility | Current state |
 | --- | --- | --- | --- |
 | Workspace status | Open the home page and see API/database status | Next.js checks FastAPI health endpoints | Implemented foundation |
-| Account and project access | Sign in and see only authorized projects | Authenticate users and enforce project membership in every query and job | Planned; old prototype is separate |
+| Account and project access | Sign in and see only authorized projects | Authenticate users and enforce project membership in every query and job | Auth models and routes under development; project authorization planned |
 | Project and revision | Create a project and select a pinned source revision | Store project, source fingerprint or commit SHA, and import status | Planned |
 | Safe repository import | Paste a supported public GitHub or Bitbucket URL and see the pinned revision and any skipped files | Bound size/time, validate host and paths, isolate source, never run imported code during analysis | Planned |
-| Python analysis | Start analysis and inspect progress and warnings | Parse source with `ast` as data; record supported and unresolved cases | Planned |
-| API catalog | Browse methods and paths, select an endpoint, jump to its handler | Discover FastAPI routes, preserve source line, confidence, and analyzer version | Planned |
+| Python analysis | Start analysis and inspect progress and warnings | Parse source with `ast` as data; record supported and unresolved cases | Standalone fixture analyzer prototype; product integration planned |
+| API catalog | Browse methods and paths, select an endpoint, jump to its handler | Discover FastAPI routes, preserve source line, confidence, and analyzer version | Standalone route discovery prototype; product UI planned |
 | Flow graph, mind map, and source | Navigate one feature's route, calls, dependencies, data access, and response; click nodes and edges to open source | Render focused slices from versioned IR; show uncertainty and provenance; provide search and a text step view | Planned |
+| Visualization levels | Move from repository overview to a feature flow and function calls | Build bounded views from the same revision and IR; preserve source links, confidence, and incomplete areas | Planned |
+| Natural-language query and suggestions | Ask a code question, choose an editable suggestion, and open cited code and a focused graph | Retrieve project-scoped evidence; suggest questions from known entities; label unsupported answers | Planned |
+| Diagram export | Download the selected diagram for documentation | Export SVG or PNG with revision, title, evidence legend, uncertainty, and text outline under project authorization | Planned |
+| LLM prompt draft | Inspect and edit a prompt containing the selected question and supporting code | Bound and filter cited evidence; show exactly what is copied or sent; exclude secrets | Planned |
+| Full-stack source flow | Select a frontend action and follow a supported HTTP call into its backend route and response | Analyze React/Next.js and FastAPI source, match resolvable HTTP contracts, retain both call-site locations, and show unknown links | Planned after FastAPI source flow |
 | AI code-flow guide | Ask what each step does, why it is reached, and where a value comes from | Answer with inspected file and line citations; label inferred and unresolved steps; work without a database | Planned |
+| Synthetic target setup | Review a disposable schema, generated sample records, test accounts, and test doubles | Validate source models/migrations/fixtures against the runnable target; never use original or production data; explain unsupported setup | Planned |
+| AI test bot | Review a student-like API journey and inspect a replayable issue report | Propose finite actions and assertions from verified endpoints; enforce saved target/actions/limits; execute with deterministic runner; cite requests and traces | Planned |
 | Trace waterfall and database timing | Send an approved request and view total request time, query count, query durations, and errors | Run only an isolated instrumented target; ingest sanitized OpenTelemetry spans; link to graph only with reliable mapping | Planned |
 | Traffic charts | Optionally run a saved baseline or bounded 100-concurrent-virtual-user scenario and compare metrics | Bound target, rate, duration, resources, and chart configured versus achieved load with units and sample counts | Planned |
 | Failure experiment | Inject one approved delay or failure and compare behavior | Apply bounded fault to an isolated target and guarantee cleanup | Planned |
@@ -54,6 +63,7 @@ The main navigation path is **repository link → revision → API or feature �
 | Optimization options | Open a finding and compare relevant query, index, cache, pool, or concurrency ideas | Link each option to evidence, tradeoffs, and a testable before/after scenario | Planned |
 | AI runtime explanation | Ask why a measured request failed or slowed down and open supporting records | Retrieve project-scoped source and runtime evidence; distinguish observation, inference, and unknowns | Planned |
 | History and rerun | Reopen a revision or rerun a saved scenario | Keep immutable run records and show differences between comparable runs | Planned |
+| Learning and flow comparison | Predict a step or compare one endpoint across revisions | Reveal evidence-backed answers; distinguish changed source edges from changed observed behavior | Later extension |
 
 ## Implementation flow by dependency
 
@@ -116,13 +126,22 @@ The existing repository has a Next.js home page, FastAPI health endpoints, Postg
 
 ### 7. Add observed runtime tracing
 
-- Launch only the approved fixture in an isolated target environment and instrument it with OpenTelemetry.
+- Launch only the approved fixture in an isolated target environment with a validated disposable schema, synthetic seed data, and supported local test doubles. Never accept an original or production database connection.
 - Send a controlled request, retain trace and span IDs, total request duration, database query counts and durations, status, timing, parent-child relationships, and project/revision links. Redact query parameters and row values.
 - Show a trace waterfall beside the static graph, including database spans. Link a span to a source node only when mapping evidence is reliable; keep inferred and observed paths visibly distinct.
 
 **Done when:** a learner can distinguish a statically possible path from what actually happened in one request, including which instrumented database operations consumed time. The AI guide can explain a measured error or slowdown with cited spans.
 
-### 8. Add optional repeatable experiments and measured findings
+### 8. Add a reviewed AI test journey
+
+- Let AI propose a short student-like path from the selected API catalog, verified schemas, source evidence, and fixtures. Include synthetic accounts and records, expected checks, and any state-changing effects.
+- Show target identity, action list, synthetic dataset, maximum requests, duration, and allowed network destinations before the learner authorizes the run once.
+- Execute the frozen plan through a deterministic runner, capture responses, assertions, errors, trace IDs, and replay configuration. The bot cannot add actions or widen limits during execution.
+- If schema or dependencies cannot be validated, show exactly why runtime testing is unsupported while retaining source-only analysis.
+
+**Done when:** one approved fixture journey can be repeated on a fresh synthetic dataset and any reported issue links to an actual failed check, request, trace, revision, and scenario version.
+
+### 9. Add optional repeatable experiments and measured findings
 
 - Save bounded baseline and stress scenarios against an allowlisted isolated target, including a configurable 100-concurrent-virtual-user example; chart configured and achieved load, latency percentiles, errors, timeouts, database timing, and resource metrics with units and sample counts.
 - Add one bounded dependency delay or failure, automatic cleanup, and before/after comparison.
@@ -130,7 +149,7 @@ The existing repository has a Next.js home page, FastAPI health endpoints, Postg
 
 **Done when:** a learner who chooses the deeper lab can rerun the documented 100-user scenario, inspect where latency or errors increased, and trace any finding to measured data.
 
-### 9. Extend the AI guide to optimization comparisons
+### 10. Extend the AI guide to optimization comparisons
 
 - Retrieve only the current project's approved endpoint, graph, trace, experiment, and finding records.
 - Require explanations and optimization options to cite evidence IDs, label observations, interpretations, and unknowns separately, and state tradeoffs. A caching option must discuss eligibility, invalidation, consistency, and a comparison run.
@@ -142,9 +161,9 @@ The existing repository has a Next.js home page, FastAPI health endpoints, Postg
 
 Each completed feature should help answer a learner's concrete question. The endpoint and graph explain request flow and database access; the AI guide translates those links into plain language and supports follow-up questions. Traces measure request and query timing only when an approved target runs. Optional 100-user and fault runs expose latency, throughput, bottlenecks, and resilience. Findings lead to design tradeoffs such as query optimization versus caching or synchronous work versus a queue. A concept view should show the supporting evidence, explain what is inferred, and suggest an experiment that could change the conclusion. These learning views are planned; the current frontend does not yet generate them.
 
-### 10. Extend only after the full FastAPI path works
+### 11. Add full-stack framework support in verified slices
 
-Flask, Django, additional languages, more fault types, Redis, Kafka, vector retrieval, and hosted deployment are later choices. Add each with its own fixtures, safety boundaries, and acceptance criteria; they do not block the first complete FastAPI demonstration.
+After the full FastAPI path works, add React and Next.js source analysis for a frontend action that calls a FastAPI route. Show page or component, action or data loading, HTTP call, backend route, downstream source flow, and response handling where each link can be resolved. Preserve unknown links and frontend-only or backend-only partial flows. Next add Express as a separate backend family; evaluate NestJS, Flask, Django, and later languages through their own fixtures and user-facing limits. Detection, catalog, source flow, observed flow, and test lab are distinct support levels. The [framework support roadmap](../analysis/framework-support-roadmap.md) lists their order and verification rules. More fault types, Redis, Kafka, vector retrieval, and hosted deployment remain later choices with their own acceptance criteria.
 
 ## Evidence rule across the whole flow
 

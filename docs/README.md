@@ -16,6 +16,7 @@ The [developer guide](developer-guide.md) connects the product requirements to p
 - [System architecture](architecture/system-architecture.md)
 - [Architecture evolution](architecture/architecture-evolution.md)
 - [Repository import and analysis](analysis/repository-import-and-analysis.md)
+- [Frontend and backend framework support roadmap](analysis/framework-support-roadmap.md)
 - [Intermediate representation](analysis/intermediate-representation.md)
 - [API catalog and interfaces](api/api-catalog-and-interfaces.md)
 - [Proposed HTTP API](api/http-api.md)
@@ -43,6 +44,8 @@ The [developer guide](developer-guide.md) connects the product requirements to p
 - [Open design decisions](decisions/open-design-decisions.md)
 - [Architecture decision record template](decisions/ADR_TEMPLATE.md)
 - [Initial API and database decision](decisions/ADR-0001-api-database-container-foundation.md)
+- [Synthetic runtime and AI test bot decision](decisions/ADR-0005-synthetic-runtime-and-ai-test-bot.md)
+- [Full-stack framework progression decision](decisions/ADR-0006-full-stack-framework-progression.md)
 
 ## Engineering context
 

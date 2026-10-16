@@ -4,11 +4,20 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 
+
+
 from fastapi import FastAPI, status
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
+from app.auth.routes import router as auth_router
+
+import os
+
+from starlette.middleware.sessions import SessionMiddleware
+from app.auth.oauth_routes import router as oauth_router
+from app.auth.routes import COOKIE_SECURE
 
 from app.db import create_engine
 
@@ -35,6 +44,19 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.environ["OAUTH_STATE_SECRET"],
+    session_cookie="cfa_oauth_flow",
+    same_site="lax",
+    https_only=COOKIE_SECURE,
+    max_age=600,
+)
+
+app.include_router(oauth_router)
+
+app.include_router(auth_router)
 
 
 @app.get("/health/live", tags=["health"])

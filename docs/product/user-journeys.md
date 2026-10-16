@@ -6,7 +6,11 @@ The user creates a project, imports a pinned revision, and starts analysis. The 
 
 ### Runtime diagnosis
 
-The user launches a supported example target with tracing, sends a request, and opens the waterfall. The trace contains timing, status, errors, and parent-child relationships. Source mapping is shown only when instrumentation or reliable metadata identifies a file, function, or entity. The user can compare trace evidence with the static graph and see where they differ.
+The user chooses a supported test target and reviews its disposable schema and synthetic seed plan. A local runner on the user's machine or a later hosted runner starts an isolated copy with no connection to original data. The user sends a request and opens the waterfall. The trace contains timing, status, errors, and parent-child relationships. Source mapping is shown only when instrumentation or reliable metadata identifies a file, function, or entity. The user can compare trace evidence with the static graph and see where they differ.
+
+### AI test bot
+
+The student selects an API or feature and asks for a test journey. The bot proposes actions and expected outcomes from discovered routes, schemas, and fixtures; the student reviews the target, allowed actions, synthetic test data, and resource limits once before the run. A deterministic runner executes the approved journey, captures failures and traces, and presents a replayable issue report. The AI explains the evidence and labels any suspected root cause as a hypothesis. When the source cannot provide a validated runnable schema, the bot explains the missing setup and leaves the source walkthrough available.
 
 ### Controlled experiment
 

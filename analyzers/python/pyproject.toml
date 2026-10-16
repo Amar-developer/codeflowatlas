@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=84"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cfa-python-analyzer"
+version = "0.1.0"
+description = "CodeFlowAtlas static analyzer for Python and FastAPI; emits IR without executing target code"
+requires-python = ">=3.12"
+dependencies = ["cfa-ir"]
+
+[tool.setuptools.packages.find]
+include = ["cfa_python_analyzer*"]

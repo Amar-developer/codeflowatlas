@@ -1,10 +1,14 @@
 export const dynamic = "force-dynamic";
+import Link from "next/link";
+import type { ReactNode } from "react";
+import AuthHeader from "./components/AuthHeader";
+
 
 const apiInternalUrl = process.env.API_INTERNAL_URL || "http://127.0.0.1:8000";
 const apiPublicUrl = process.env.API_PUBLIC_URL || "http://127.0.0.1:8000";
 const repositoryUrl = "https://github.com/Amar-developer/codeflowatlas";
 
-const check = async (path) => {
+const check = async (path: string): Promise<boolean> => {
   try {
     const response = await fetch(`${apiInternalUrl}${path}`, {
       cache: "no-store",
@@ -16,7 +20,7 @@ const check = async (path) => {
   }
 };
 
-const Arrow = ({ diagonal = false }) => (
+const Arrow = ({ diagonal = false }: { diagonal?: boolean }) => (
   <svg aria-hidden="true" className="size-4" fill="none" viewBox="0 0 20 20">
     {diagonal ? (
       <path
@@ -44,10 +48,10 @@ const Brand = () => (
     className="group inline-flex items-center gap-3"
     href="#top"
   >
-    <span className="grid size-10 place-items-center rounded-xl border border-emerald-300/30 bg-emerald-300/10 shadow-lg shadow-emerald-400/10">
+    <span className="grid size-10 place-items-center rounded-xl border border-rose-400/30 bg-rose-500/10 shadow-lg shadow-rose-500/10 transition group-hover:border-rose-300/60 group-hover:shadow-rose-500/25">
       <svg
         aria-hidden="true"
-        className="size-6 text-emerald-300"
+        className="size-6 text-rose-400"
         fill="none"
         viewBox="0 0 24 24"
       >
@@ -61,26 +65,32 @@ const Brand = () => (
         />
       </svg>
     </span>
-    <span className="text-lg font-bold tracking-tight text-white transition group-hover:text-emerald-200">
-      CodeFlowAtlas<span className="text-emerald-300">.</span>
+    <span className="text-lg font-bold tracking-tight text-white transition group-hover:text-rose-200">
+      CodeFlowAtlas<span className="text-rose-400">.</span>
     </span>
   </a>
 );
 
-const Eyebrow = ({ children }) => (
-  <p className="mb-5 flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-emerald-300">
-    <span aria-hidden="true" className="h-px w-7 bg-emerald-300" />
+const Eyebrow = ({ children }: { children: ReactNode }) => (
+  <p className="mb-5 flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-rose-400">
+    <span aria-hidden="true" className="h-px w-7 bg-rose-400" />
     {children}
   </p>
 );
 
-const StatusItem = ({ name, detail, ready }) => (
+type StatusItemProps = {
+  name: string;
+  detail: string;
+  ready: boolean;
+};
+
+const StatusItem = ({ name, detail, ready }: StatusItemProps) => (
   <div className="flex items-center gap-3">
     <span
-      className={`relative size-2 shrink-0 rounded-full ${ready ? "bg-emerald-300" : "bg-rose-300"}`}
+      className={`relative size-2 shrink-0 rounded-full ${ready ? "bg-cyan-300" : "bg-rose-400"}`}
     >
       {ready && (
-        <span className="status-ping absolute inset-0 rounded-full bg-emerald-300" />
+        <span className="status-ping absolute inset-0 rounded-full bg-cyan-300" />
       )}
     </span>
     <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
@@ -88,17 +98,29 @@ const StatusItem = ({ name, detail, ready }) => (
       <span className="text-xs text-slate-500">{detail}</span>
     </div>
     <span
-      className={`ml-auto text-xs font-medium ${ready ? "text-emerald-300" : "text-rose-300"}`}
+      className={`ml-auto text-xs font-medium ${ready ? "text-cyan-300" : "text-rose-300"}`}
     >
       {ready ? "Online" : "Unavailable"}
     </span>
   </div>
 );
 
-const FlowNode = ({ icon, label, sublabel, tone = "emerald" }) => (
+type FlowNodeProps = {
+  icon: ReactNode;
+  label: string;
+  sublabel: string;
+  tone?: "rose" | "violet" | "cyan";
+};
+
+const FlowNode = ({
+  icon,
+  label,
+  sublabel,
+  tone = "rose",
+}: FlowNodeProps) => (
   <div className="flow-node flex items-center gap-3 rounded-xl border border-white/10 bg-slate-900/90 p-3 shadow-xl shadow-black/20">
     <span
-      className={`grid size-9 shrink-0 place-items-center rounded-lg text-xs font-bold ${tone === "violet" ? "bg-violet-400/15 text-violet-300" : tone === "cyan" ? "bg-cyan-400/15 text-cyan-300" : "bg-emerald-400/15 text-emerald-300"}`}
+      className={`grid size-9 shrink-0 place-items-center rounded-lg text-xs font-bold ${tone === "violet" ? "bg-violet-400/15 text-violet-300" : tone === "cyan" ? "bg-cyan-400/15 text-cyan-300" : "bg-rose-400/15 text-rose-300"}`}
     >
       {icon}
     </span>
@@ -109,7 +131,7 @@ const FlowNode = ({ icon, label, sublabel, tone = "emerald" }) => (
       <span className="block truncate text-xs text-slate-500">{sublabel}</span>
     </span>
     <span
-      className="ml-auto size-1.5 shrink-0 rounded-full bg-emerald-300/70"
+      className="ml-auto size-1.5 shrink-0 rounded-full bg-rose-300/70"
       aria-hidden="true"
     />
   </div>
@@ -177,73 +199,57 @@ const HomePage = async () => {
     >
       <div
         aria-hidden="true"
-        className="site-glow pointer-events-none absolute left-1/2 top-0 -z-10 h-96 w-full -translate-x-1/2"
+      className="site-glow pointer-events-none absolute left-1/2 top-0 h-[32rem] w-full -translate-x-1/2"
       />
-      <header className="relative z-20 border-b border-white/5 bg-slate-950/50 backdrop-blur-xl">
+      <header className="relative z-20 border-b border-white/10 bg-[#090b13]/75 backdrop-blur-xl">
         <nav
           aria-label="Main navigation"
           className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-5 py-4 sm:px-8 lg:px-10"
         >
           <Brand />
-          <div className="hidden items-center gap-8 text-sm font-medium text-slate-400 md:flex">
-            <a className="nav-link" href="#how-it-works">
-              How it works
-            </a>
-            <a className="nav-link" href="#visual-lab">
-              Visual lab
-            </a>
-            <a className="nav-link" href="#capabilities">
-              Capabilities
-            </a>
-            <a className="nav-link" href="#status">
-              Status
-            </a>
+          <div className="hidden items-center gap-7 text-sm font-medium text-slate-400 lg:flex">
+            <a className="nav-link" href="#how-it-works">How it works</a>
+            <a className="nav-link" href="#visual-lab">Visual lab</a>
+            <a className="nav-link" href="#capabilities">Capabilities</a>
           </div>
-          <a
-            className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/15 px-4 py-2.5 text-xs font-semibold text-white transition hover:border-emerald-300/60 hover:bg-white/5 sm:text-sm"
-            href={repositoryUrl}
-            rel="noreferrer"
-            target="_blank"
-          >
-            View on GitHub <Arrow diagonal />
-          </a>
+          <AuthHeader />
         </nav>
       </header>
 
       <main>
         <section
-          className="relative mx-auto grid max-w-7xl items-center gap-14 px-5 pb-10 pt-10 sm:px-8 md:pt-18 lg:grid-cols-2 lg:gap-12 lg:px-10 lg:pb-28"
+          className="relative mx-auto grid max-w-7xl items-center gap-16 px-5 pb-16 pt-16 sm:px-8  lg:grid-cols-[1.05fr_.95fr] lg:gap-14 lg:px-10 lg:pb-32"
           aria-labelledby="hero-title"
         >
           <div className="animate-rise relative z-10">
-            <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-300/5 px-3 py-2 text-xs font-semibold text-emerald-200">
+            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-rose-400/25 bg-rose-500/10 px-3.5 py-2 text-xs font-semibold tracking-wide text-rose-200 shadow-sm shadow-rose-500/10">
               <span
-                className="size-1.5 rounded-full bg-emerald-300"
+                className="size-1.5 rounded-full bg-rose-400 shadow-[0_0_12px_#fb7185]"
                 aria-hidden="true"
               />{" "}
               A visual learning lab for your code
             </div>
             <h1
               id="hero-title"
-              className="max-w-2xl text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl"
+              className="max-w-2xl text-5xl font-semibold leading-[1.06] tracking-[-0.045em] text-white sm:text-4xl lg:text-5xl"
             >
-              Understand the code{" "}
-              <span className="gradient-text">AI wrote for you.</span>
+              See the system behind{" "}
+              <span className="gradient-text">the code AI wrote.</span>
             </h1>
-            <p className="mt-7 max-w-xl text-lg leading-relaxed text-slate-400">
-              Turn a small real project into an explorable map. Follow every
-              supported API path, open the source behind each step, and learn
-              what happens next with an evidence-aware AI guide.
+            <p className="mt-8 max-w-xl text-lg leading-8 text-slate-400">
+              Turn an unfamiliar project into a map you can explore. Trace API
+              paths back to source, understand each step, and learn with an AI
+              guide that shows its evidence.
             </p>
-            <div className="mt-9 flex flex-wrap gap-3">
+            <div className="mt-10 flex flex-wrap gap-3">
               <a
-                className="inline-flex items-center gap-3 rounded-xl bg-emerald-300 px-5 py-3.5 text-sm font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition hover:-translate-y-0.5 hover:bg-emerald-200"
+                className="inline-flex items-center gap-3 rounded-xl bg-rose-500 px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-rose-500/25 transition duration-300 hover:-translate-y-1 hover:bg-rose-400 hover:shadow-rose-500/40"
                 href="#visual-lab"
               >
                 Explore the vision <Arrow />
               </a>
               <a
-                className="inline-flex items-center gap-3 rounded-xl border border-white/15 bg-white/5 px-5 py-3.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/10"
+                className="inline-flex items-center gap-3 rounded-xl border border-white/15 bg-white/5 px-5 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition duration-300 hover:-translate-y-1 hover:border-white/30 hover:bg-white/10"
                 href={`${apiPublicUrl}/docs`}
                 rel="noreferrer"
                 target="_blank"
@@ -255,6 +261,11 @@ const HomePage = async () => {
               The visual workspace shown here is a design preview. Analysis and
               AI features are planned.
             </p>
+            <div className="mt-9 flex flex-wrap gap-x-6 gap-y-3 border-t border-white/10 pt-5 text-xs font-medium text-slate-400">
+              <span><span className="mr-2 text-rose-400">✳</span> Source linked</span>
+              <span><span className="mr-2 text-violet-300">✳</span> AI guided</span>
+              <span><span className="mr-2 text-cyan-300">✳</span> Evidence aware</span>
+            </div>
           </div>
 
           <div
@@ -263,15 +274,15 @@ const HomePage = async () => {
           >
             <div
               aria-hidden="true"
-              className="absolute -inset-6 rounded-full bg-emerald-400/10 blur-3xl"
+              className="absolute -inset-10 rounded-full bg-gradient-to-br from-rose-500/20 via-violet-500/10 to-transparent blur-3xl"
             />
-            <div className="lab-window relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/90 shadow-2xl shadow-black/40">
+            <div className="hero-panel lab-window relative overflow-hidden rounded-3xl border border-white/15 bg-[#101522]/95 shadow-2xl shadow-black/40">
               <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-5 py-4">
                 <div className="flex items-center gap-3">
                   <span className="flex gap-1.5" aria-hidden="true">
                     <i className="size-2 rounded-full bg-rose-400/70" />
                     <i className="size-2 rounded-full bg-amber-300/70" />
-                    <i className="size-2 rounded-full bg-emerald-300/70" />
+                    <i className="size-2 rounded-full bg-rose-300/70" />
                   </span>
                   <span className="text-xs font-semibold tracking-wide text-slate-300">
                     FLOW EXPLORER
@@ -296,7 +307,7 @@ const HomePage = async () => {
                       sublabel="Route · app/routes.py:28"
                     />
                     <div
-                      className="signal-connector ml-7 h-5 w-px bg-emerald-300/30"
+                      className="signal-connector ml-7 h-5 w-px bg-rose-300/30"
                       aria-hidden="true"
                     />
                     <FlowNode
@@ -331,7 +342,7 @@ const HomePage = async () => {
                       </p>
                     </div>
                     <div className="rounded-xl border border-white/10 bg-slate-950/70 p-4 text-xs text-slate-400">
-                      <span className="font-semibold text-emerald-300">
+                      <span className="font-semibold text-rose-300">
                         SOURCE LINKED
                       </span>
                       <p className="mt-2 leading-relaxed">
@@ -342,8 +353,8 @@ const HomePage = async () => {
                 </div>
               </div>
             </div>
-            <div className="float-chip absolute -bottom-5 left-4 flex items-center gap-2 rounded-xl border border-emerald-300/20 bg-slate-900 px-4 py-3 text-xs font-semibold text-emerald-200 shadow-xl shadow-black/30 sm:-left-5">
-              <span className="size-2 rounded-full bg-emerald-300" /> Learn one
+            <div className="float-chip absolute -bottom-5 left-4 flex items-center gap-2 rounded-xl border border-rose-400/25 bg-[#171b29] px-4 py-3 text-xs font-semibold text-rose-200 shadow-xl shadow-black/30 sm:-left-5">
+              <span className="size-2 rounded-full bg-rose-300" /> Learn one
               step at a time
             </div>
           </div>
@@ -351,7 +362,7 @@ const HomePage = async () => {
 
         <section
           id="status"
-          className="border-y border-white/5 bg-white/2"
+          className="border-y border-white/10 bg-white/[0.025]"
           aria-labelledby="status-title"
         >
           <div className="mx-auto grid max-w-7xl gap-7 px-5 py-6 sm:px-8 md:grid-cols-3 md:items-center lg:px-10">
@@ -387,7 +398,7 @@ const HomePage = async () => {
               className="text-4xl font-bold tracking-tight text-white sm:text-5xl"
             >
               From “what does this do?” to{" "}
-              <span className="text-emerald-300">“now I see it.”</span>
+              <span className="text-rose-400">“now I see it.”</span>
             </h2>
             <p className="mt-5 text-lg leading-relaxed text-slate-400">
               A guided path from unfamiliar source code to an explanation you
@@ -397,16 +408,16 @@ const HomePage = async () => {
           <div className="mt-12 grid gap-4 md:grid-cols-3">
             {workflow.map((step) => (
               <article
-                className="group relative flex min-h-72 flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/3 p-7 transition duration-300 hover:-translate-y-1 hover:border-emerald-300/30 hover:bg-white/5"
+                className="glass-card group relative flex min-h-72 flex-col overflow-hidden rounded-3xl border border-white/10 p-7 transition duration-300 hover:-translate-y-2 hover:border-rose-400/35 hover:shadow-2xl hover:shadow-rose-950/25"
                 key={step.number}
               >
                 <div className="mb-10 flex items-start justify-between">
-                  <span className="font-mono text-sm text-emerald-300">
+                  <span className="font-mono text-sm text-rose-400">
                     {step.number} / 03
                   </span>
                   <span
                     aria-hidden="true"
-                    className="grid size-12 place-items-center rounded-xl border border-white/10 bg-slate-800 text-2xl text-emerald-200 transition group-hover:border-emerald-300/30"
+                    className="grid size-12 place-items-center rounded-xl border border-rose-400/15 bg-rose-500/10 text-2xl text-rose-200 transition group-hover:border-rose-400/40 group-hover:bg-rose-500/15"
                   >
                     {step.symbol}
                   </span>
@@ -427,7 +438,7 @@ const HomePage = async () => {
 
         <section
           id="visual-lab"
-          className="relative border-y border-white/5 bg-slate-900/40 py-24 lg:py-32"
+          className="relative border-y border-white/10 bg-gradient-to-b from-[#101420] via-[#111522] to-[#0c0f18] py-24 lg:py-32"
           aria-labelledby="lab-title"
         >
           <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
@@ -449,23 +460,23 @@ const HomePage = async () => {
               <PreviewLabel />
             </div>
             <div className="grid gap-4 lg:grid-cols-12">
-              <div className="lab-grid overflow-hidden rounded-2xl border border-white/10 bg-slate-950/80 p-6 lg:col-span-7 sm:p-8">
+              <div className="lab-grid overflow-hidden rounded-3xl border border-white/10 bg-[#0d111c]/90 p-6 shadow-xl shadow-black/20 lg:col-span-7 sm:p-8">
                 <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-emerald-300">
+                    <p className="text-xs font-bold uppercase tracking-widest text-rose-300">
                       01 / Source map
                     </p>
                     <h3 className="mt-2 text-xl font-semibold text-white">
                       A flow you can actually follow
                     </h3>
                   </div>
-                  <span className="rounded-full border border-emerald-300/20 bg-emerald-300/5 px-3 py-1.5 text-xs text-emerald-200">
+                  <span className="rounded-full border border-rose-300/20 bg-rose-300/5 px-3 py-1.5 text-xs text-rose-200">
                     Source inferred
                   </span>
                 </div>
                 <div className="relative mx-auto max-w-lg py-2">
                   <div
-                    className="absolute bottom-10 left-6 top-10 w-px bg-gradient-to-b from-emerald-300/50 via-cyan-300/40 to-violet-300/40"
+                    className="absolute bottom-10 left-6 top-10 w-px bg-gradient-to-b from-rose-300/50 via-cyan-300/40 to-violet-300/40"
                     aria-hidden="true"
                   />
                   <div className="relative space-y-5">
@@ -503,7 +514,7 @@ const HomePage = async () => {
                 </div>
               </div>
               <div className="grid gap-4 lg:col-span-5">
-                <div className="rounded-2xl border border-white/10 bg-slate-950/80 p-6 sm:p-8">
+                <div className="glass-card rounded-3xl border border-white/10 p-6 sm:p-8">
                   <p className="text-xs font-bold uppercase tracking-widest text-violet-300">
                     02 / AI guide
                   </p>
@@ -532,13 +543,13 @@ const HomePage = async () => {
                     </p>
                   </div>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-slate-950/80 p-6 sm:p-8">
+                <div className="glass-card rounded-3xl border border-white/10 p-6 sm:p-8">
                   <p className="text-xs font-bold uppercase tracking-widest text-cyan-300">
                     03 / Evidence key
                   </p>
                   <div className="mt-5 space-y-4">
                     <div className="flex items-center gap-3 text-sm text-slate-300">
-                      <span className="size-2.5 rounded-full bg-emerald-300" />{" "}
+                      <span className="size-2.5 rounded-full bg-rose-300" />{" "}
                       Inferred from source
                     </div>
                     <div className="flex items-center gap-3 text-sm text-slate-300">
@@ -575,7 +586,7 @@ const HomePage = async () => {
             </p>
           </div>
           <div className="mt-12 grid gap-4 md:grid-cols-3">
-            <article className="overflow-hidden rounded-2xl border border-white/10 bg-white/3 p-6">
+            <article className="glass-card overflow-hidden rounded-3xl border border-white/10 p-6 transition duration-300 hover:-translate-y-1 hover:border-cyan-300/25">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-widest text-cyan-300">
                   Runtime trace
@@ -586,7 +597,7 @@ const HomePage = async () => {
                 <div className="h-3 w-10/12 rounded bg-cyan-300/70" />
                 <div className="ml-5 h-3 w-7/12 rounded bg-cyan-300/45" />
                 <div className="ml-10 h-3 w-5/12 rounded bg-violet-300/60" />
-                <div className="ml-5 h-3 w-4/12 rounded bg-emerald-300/50" />
+                <div className="ml-5 h-3 w-4/12 rounded bg-rose-300/50" />
               </div>
               <h3 className="mt-8 text-xl font-semibold text-white">
                 See where a request goes.
@@ -596,7 +607,7 @@ const HomePage = async () => {
                 duration to the flow when instrumentation is available.
               </p>
             </article>
-            <article className="overflow-hidden rounded-2xl border border-white/10 bg-white/3 p-6">
+            <article className="glass-card overflow-hidden rounded-3xl border border-white/10 p-6 transition duration-300 hover:-translate-y-1 hover:border-violet-300/25">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-widest text-violet-300">
                   Data timing
@@ -622,9 +633,9 @@ const HomePage = async () => {
                 specific improvement to test.
               </p>
             </article>
-            <article className="overflow-hidden rounded-2xl border border-white/10 bg-white/3 p-6">
+            <article className="glass-card overflow-hidden rounded-3xl border border-white/10 p-6 transition duration-300 hover:-translate-y-1 hover:border-rose-300/25">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-widest text-emerald-300">
+                <span className="text-xs font-bold uppercase tracking-widest text-rose-300">
                   System design lab
                 </span>
                 <span className="text-xs text-slate-500">Planned</span>
@@ -639,7 +650,7 @@ const HomePage = async () => {
                   <path
                     d="M0 57 35 53 70 54 105 41 140 42 175 22 210 34 245 15 300 28"
                     fill="none"
-                    stroke="#6ee7b7"
+                    stroke="#fb7185"
                     strokeWidth="2.5"
                   />
                   <path
@@ -683,14 +694,14 @@ const HomePage = async () => {
             <div className="space-y-3 lg:col-span-2">
               {questions.map((item) => (
                 <details
-                  className="faq-item group rounded-xl border border-white/10 bg-white/3 px-5 py-4"
+                  className="faq-item glass-card group rounded-2xl border border-white/10 px-5 py-4 transition hover:border-white/20"
                   key={item.question}
                 >
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-5 text-sm font-semibold text-white marker:hidden">
                     {item.question}
                     <span
                       aria-hidden="true"
-                      className="text-xl text-emerald-300 transition group-open:rotate-45"
+                      className="text-xl text-rose-300 transition group-open:rotate-45"
                     >
                       +
                     </span>
@@ -705,7 +716,7 @@ const HomePage = async () => {
         </section>
 
         <section
-          className="border-t border-white/5 bg-slate-900/50 py-20"
+          className="border-t border-white/10 bg-gradient-to-r from-rose-950/30 via-[#111522] to-violet-950/20 py-20"
           aria-labelledby="closing-title"
         >
           <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 px-5 sm:px-8 lg:flex-row lg:items-center lg:px-10">
@@ -723,7 +734,7 @@ const HomePage = async () => {
               </p>
             </div>
             <a
-              className="inline-flex items-center gap-3 rounded-xl bg-emerald-300 px-5 py-3.5 text-sm font-bold text-slate-950 transition hover:-translate-y-0.5 hover:bg-emerald-200"
+              className="inline-flex items-center gap-3 rounded-xl bg-rose-500 px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-rose-500/20 transition duration-300 hover:-translate-y-1 hover:bg-rose-400"
               href={repositoryUrl}
               rel="noreferrer"
               target="_blank"

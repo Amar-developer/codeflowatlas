@@ -7,7 +7,9 @@ CodeFlowAtlas is a visual learning tool. The central screen is a map of one sele
 | View | Learner question | Evidence and interaction |
 | --- | --- | --- |
 | Repository mind map | What parts of this small project exist? | Group discovered APIs, modules, data stores, and external dependencies. Select a branch to focus on one feature; show unsupported areas. |
+| Repository overview | How are the detected parts connected? | Group supported frontend, API, module, and dependency relationships with evidence and missing-area labels; open a feature slice from a group. |
 | API flow graph | How does this request move through code? | Show route, handler, resolvable calls, data access, and response as a bounded path. Each node opens file and line; each edge shows relationship, confidence, and provenance. |
+| Function call view | Which supported calls occur inside this feature? | Expand a selected function into resolvable callees and callers with source ranges; stop at an unresolved or external boundary. |
 | Data-flow view | Where does this value come from and where is it used? | Show statically supported input, transformation, database read/write, and response links. Mark unresolved data movement rather than inventing it. |
 | Runtime trace waterfall | What actually ran and how long did it take? | Show parent-child spans, request and database durations, errors, and source links only where mapping is reliable. Available only for an approved instrumented target. |
 | Experiment charts | What changed under load or a fault? | Plot configured and achieved load, throughput, p50/p95/p99 latency, errors, and resource or database metrics with units, sample counts, and scenario context. |
@@ -22,6 +24,12 @@ CodeFlowAtlas is a visual learning tool. The central screen is a map of one sele
 5. If a measured issue exists, open the related trace, chart, finding, and testable improvement idea. A saved rerun enables before/after comparison.
 
 The initial useful slice needs the API flow graph, source panel, and source-grounded AI questions. Repository mind maps and data-flow views can expand the same graph contract. Runtime waterfalls and experiment charts follow when their data sources are implemented.
+
+## Query and export interactions
+
+The learner may ask a natural-language question from any selected level. A response opens a focused graph slice and relevant code excerpts when the analyzer can map the question to the current revision; otherwise it explains what evidence is missing. Live suggestions use the current project's endpoint and entity catalog plus curated question patterns. They are suggestions, not answers, and must not suggest unsupported paths as facts. Keep keyboard navigation and a text step view alongside the diagram.
+
+Export the currently selected diagram as SVG or PNG for documentation. Include its title, project and revision identifier, evidence legend, and visible unresolved edges in the exported image. A text outline or accessible description should accompany the export so the meaning does not depend on the graphic alone. Apply the same project authorization and source redaction rules as the on-screen view.
 
 ## Evidence and readability rules
 

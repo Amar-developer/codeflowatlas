@@ -1,0 +1,175 @@
+{
+  "fixture": "fastapi-basic",
+  "ir_schema_version": "0.1.0",
+  "endpoints": [
+    {
+      "id": "api_endpoint:POST /api/checkout",
+      "method": "POST",
+      "path": "/api/checkout",
+      "handler": "function:app.routers.checkout.checkout",
+      "request_model": "app.schemas.CheckoutRequest",
+      "response_model": "app.schemas.OrderResponse",
+      "status_code": 201,
+      "site": { "path": "app/routers/checkout.py", "line": 16, "text": "@router.post(\"\"" },
+      "handler_site": { "path": "app/routers/checkout.py", "line": 17, "text": "def checkout(" }
+    },
+    {
+      "id": "api_endpoint:GET /api/orders/{order_id}",
+      "method": "GET",
+      "path": "/api/orders/{order_id}",
+      "handler": "function:app.routers.orders.get_order",
+      "request_model": null,
+      "response_model": "app.schemas.OrderResponse",
+      "status_code": null,
+      "site": { "path": "app/routers/orders.py", "line": 18, "text": "@router.get(\"/{order_id}\"" },
+      "handler_site": { "path": "app/routers/orders.py", "line": 19, "text": "def get_order(" }
+    }
+  ],
+  "entities": [
+    {
+      "id": "table:products",
+      "model": "app.models.Product",
+      "site": { "path": "app/models.py", "line": 9, "text": "class Product(Base)" }
+    },
+    {
+      "id": "table:orders",
+      "model": "app.models.Order",
+      "site": { "path": "app/models.py", "line": 18, "text": "class Order(Base)" }
+    },
+    {
+      "id": "external_service:PAYMENT_URL",
+      "kind": "http",
+      "site": { "path": "app/services/payment.py", "line": 6, "text": "PAYMENT_URL = os.environ.get(" }
+    }
+  ],
+  "edges": [
+    {
+      "type": "exposes",
+      "source": "api_endpoint:POST /api/checkout",
+      "target": "function:app.routers.checkout.checkout",
+      "confidence": "exact",
+      "site": { "path": "app/routers/checkout.py", "line": 16, "text": "@router.post(" }
+    },
+    {
+      "type": "depends_on",
+      "source": "function:app.routers.checkout.checkout",
+      "target": "function:app.db.get_session",
+      "confidence": "exact",
+      "site": { "path": "app/routers/checkout.py", "line": 19, "text": "Depends(get_session)" }
+    },
+    {
+      "type": "calls",
+      "source": "function:app.routers.checkout.checkout",
+      "target": "function:app.services.inventory.reserve",
+      "confidence": "exact",
+      "site": { "path": "app/routers/checkout.py", "line": 21, "text": "inventory.reserve(" }
+    },
+    {
+      "type": "calls",
+      "source": "function:app.routers.checkout.checkout",
+      "target": "function:app.services.payment.charge_card",
+      "confidence": "exact",
+      "site": { "path": "app/routers/checkout.py", "line": 25, "text": "charge_card(" }
+    },
+    {
+      "type": "calls",
+      "source": "function:app.routers.checkout.checkout",
+      "target": "function:app.services.orders.OrderService.create",
+      "confidence": "high",
+      "site": { "path": "app/routers/checkout.py", "line": 30, "text": "OrderService(session).create(" }
+    },
+    {
+      "type": "calls",
+      "source": "function:app.routers.checkout.checkout",
+      "target": "function:app.services.notifications.send",
+      "confidence": "exact",
+      "site": { "path": "app/routers/checkout.py", "line": 31, "text": "notifications.send(" }
+    },
+    {
+      "type": "reads_from",
+      "source": "function:app.services.inventory.reserve",
+      "target": "table:products",
+      "confidence": "high",
+      "site": { "path": "app/services/inventory.py", "line": 12, "text": "select(Product)" }
+    },
+    {
+      "type": "calls",
+      "source": "function:app.services.payment.charge_card",
+      "target": "external_service:PAYMENT_URL",
+      "confidence": "high",
+      "site": { "path": "app/services/payment.py", "line": 14, "text": "httpx.post(" }
+    },
+    {
+      "type": "writes_to",
+      "source": "function:app.services.orders.OrderService.create",
+      "target": "table:orders",
+      "confidence": "high",
+      "site": { "path": "app/services/orders.py", "line": 17, "text": "self.session.add(order)" }
+    },
+    {
+      "type": "exposes",
+      "source": "api_endpoint:GET /api/orders/{order_id}",
+      "target": "function:app.routers.orders.get_order",
+      "confidence": "exact",
+      "site": { "path": "app/routers/orders.py", "line": 18, "text": "@router.get(" }
+    },
+    {
+      "type": "depends_on",
+      "source": "function:app.routers.orders.get_order",
+      "target": "function:app.routers.orders.get_order_service",
+      "confidence": "exact",
+      "site": { "path": "app/routers/orders.py", "line": 21, "text": "Depends(get_order_service)" }
+    },
+    {
+      "type": "depends_on",
+      "source": "function:app.routers.orders.get_order_service",
+      "target": "function:app.db.get_session",
+      "confidence": "exact",
+      "site": { "path": "app/routers/orders.py", "line": 14, "text": "Depends(get_session)" }
+    },
+    {
+      "type": "calls",
+      "source": "function:app.routers.orders.get_order",
+      "target": "function:app.services.orders.OrderService.get",
+      "confidence": "medium",
+      "site": { "path": "app/routers/orders.py", "line": 23, "text": "service.get(order_id)" }
+    },
+    {
+      "type": "reads_from",
+      "source": "function:app.services.orders.OrderService.get",
+      "target": "table:orders",
+      "confidence": "high",
+      "site": { "path": "app/services/orders.py", "line": 23, "text": "self.session.get(Order" }
+    }
+  ],
+  "unresolved_edges": [
+    {
+      "type": "calls",
+      "source": "function:app.services.notifications.send",
+      "target_hint": "handler",
+      "confidence": "low",
+      "site": { "path": "app/services/notifications.py", "line": 12, "text": "handler(order_id)" }
+    }
+  ],
+  "absent_edges": [
+    {
+      "type": "calls",
+      "source": "function:app.services.notifications.send",
+      "target": "function:app.services.notifications.send_email",
+      "why": "Dynamic dispatch must stay unresolved, not guessed"
+    },
+    {
+      "type": "calls",
+      "source": "function:app.services.notifications.send",
+      "target": "function:app.services.notifications.send_sms",
+      "why": "Dynamic dispatch must stay unresolved, not guessed"
+    }
+  ],
+  "skipped_files_include": ["README.md", "expected-graph.json"],
+  "known_gaps": [
+    {
+      "description": "Attribute mutation flushed on commit is a real write to products but is not detected in IR 0.1.0",
+      "site": { "path": "app/services/inventory.py", "line": 15, "text": "product.stock -= quantity" }
+    }
+  ]
+}

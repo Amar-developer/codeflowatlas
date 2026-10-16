@@ -1,8 +1,10 @@
 # CodeFlowAtlas
 
-CodeFlowAtlas helps students and AI-assisted builders understand the small, real projects they create through interactive visualizations. A user pastes a supported GitHub or Bitbucket repository link, selects an API or feature, and explores a source-linked flow graph or mind map of its route, functions, dependencies, database access, and response. Clicking a step opens its code and evidence; an integrated AI guide explains what it does and answers questions. When a supported application can run in an approved isolated environment, the same workspace adds trace waterfalls, database timings, errors, and evidence-backed improvement ideas. Controlled load tests add charts and comparisons in an optional deeper lab.
+CodeFlowAtlas helps students and AI-assisted builders understand the small, real projects they create through interactive visualizations. A user pastes a supported GitHub or Bitbucket repository link, selects an API or feature, and explores a source-linked flow graph or mind map of its route, functions, dependencies, database access, and response. Clicking a step opens its code and evidence; an integrated AI guide explains what it does and answers questions. For a supported runnable target, an AI test bot proposes a reviewable student journey, then a controlled runner executes it against a disposable synthetic database. The same workspace adds trace waterfalls, database timings, replayable issues, and evidence-backed improvement ideas. Controlled load and fault tests add charts and comparisons in an optional system design lab.
 
-**Project status:** The project has a Next.js frontend, FastAPI health API, PostgreSQL readiness check, and one Docker Compose stack. The frontend shows live platform status. Repository analysis, tracing, experiments, and their full user interfaces remain planned.
+The framework roadmap expands source analysis from FastAPI to a frontend action in React or Next.js, its HTTP call, and the matching FastAPI backend flow. Other backend families follow with their own verified capability levels. See the [framework support roadmap](docs/analysis/framework-support-roadmap.md).
+
+**Project status:** The project has a Next.js foundation page, FastAPI health API, PostgreSQL readiness check, Docker Compose stack, and a standalone FastAPI analyzer/IR prototype for a bundled fixture. Authentication models and routes are under development. Repository import, connected graph UI, AI guide and test bot, synthetic runtime, tracing, and experiments remain planned.
 
 ## Run the project
 
@@ -33,9 +35,9 @@ From `frontend`, run `npm ci` yourself and then `npm run dev`. Use Node.js 20.9 
 
 ## Core flow
 
-GitHub or Bitbucket link → pinned source revision → choose an API or feature → interactive flow graph and mind map → inspect code and ask the AI guide → optional trace and timing views → observed issue and improvement idea → rerun to check the result.
+GitHub or Bitbucket link → pinned source revision → choose an API or feature → interactive flow graph and mind map → inspect code and ask the AI guide → optional disposable synthetic target and reviewed bot journey → measured trace and issue → bounded system design experiment → rerun to check an improvement.
 
-The first useful result is understanding a confusing feature in a small project, even when the repository has no running database. Source-only explanations describe what the code may do and identify unsupported or uncertain paths. Runtime claims, timings, and bottlenecks require an instrumented, approved, isolated target. A later load lab can simulate bounded traffic, such as 100 virtual users, and compare a proposed change against measured results. The current homepage and health checks are only the foundation for this workflow.
+The first useful result is understanding a confusing feature in a small project, even when the repository has no running database. Source-only explanations describe what the code may do and identify unsupported or uncertain paths. Runtime claims, timings, and bottlenecks require an instrumented, approved, isolated target with a validated disposable schema and synthetic records; CodeFlowAtlas never connects to the imported project's original or production database. The AI bot proposes a finite journey for review, and a deterministic runner records actual outcomes. A later load lab can simulate bounded traffic, such as 100 virtual users, and compare a proposed change against measured results. A local runtime lab would need a user-installed runner; a hosted runner is a later option. The current homepage and health checks are only the foundation for this workflow.
 
 ## Read first
 
@@ -91,11 +93,11 @@ codeflowatlas/
 │   ├── Dockerfile            Frontend container image
 │   └── package-lock.json     Locked JavaScript dependencies
 ├── legacy-auth-foundation/  Earlier authentication prototype
-├── analyzers/python/         Planned Python analyzer
+├── analyzers/python/         Standalone Python/FastAPI analyzer prototype
 ├── workers/                  Planned background workers
-├── packages/                 Planned shared contracts
-├── fixtures/                 Planned example repositories
-├── tests/                    Planned test suites
+├── packages/                 IR prototype and future shared contracts
+├── fixtures/                 Bundled FastAPI example and expectations
+├── tests/                    Fixture and future integration tests
 ├── infra/                    Future infrastructure
 └── docs/                     Product and developer documentation
 ```

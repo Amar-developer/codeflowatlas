@@ -9,35 +9,38 @@ html {
 }
 
 body {
-  background: #080e19;
+  background: #090b13;
 }
 
 ::selection {
-  background: #6ee7b7;
-  color: #08201b;
+  background: #fb7185;
+  color: #090b13;
 }
 
 :focus-visible {
-  outline: 2px solid #6ee7b7;
+  outline: 2px solid #fb7185;
   outline-offset: 4px;
 }
 
 .site-shell {
   position: relative;
   background:
-    radial-gradient(circle at 86% 6%, rgba(16, 185, 129, 0.1), transparent 30rem),
-    radial-gradient(circle at 8% 25%, rgba(45, 212, 191, 0.06), transparent 28rem),
-    #080e19;
+    radial-gradient(circle at 78% 2%, rgba(244, 63, 94, 0.14), transparent 34rem),
+    radial-gradient(circle at 5% 28%, rgba(129, 140, 248, 0.09), transparent 32rem),
+    #090b13;
 }
 
 .site-glow {
-  background: radial-gradient(ellipse, rgba(52, 211, 153, 0.13), transparent 65%);
+  background: radial-gradient(ellipse, rgba(251, 113, 133, 0.16), transparent 67%);
+  animation: glow-drift 12s ease-in-out infinite alternate;
 }
 
 .gradient-text {
-  background: linear-gradient(110deg, #a7f3d0 8%, #5eead4 55%, #a5b4fc 100%);
+  background: linear-gradient(110deg, #fff1f2 5%, #fb7185 48%, #c4b5fd 90%);
+  background-size: 180% 100%;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  animation: gradient-shift 9s ease-in-out infinite alternate;
 }
 
 .lab-grid {
@@ -48,7 +51,22 @@ body {
 }
 
 .lab-window {
-  box-shadow: 0 32px 100px rgba(0, 0, 0, 0.45), 0 0 60px rgba(52, 211, 153, 0.08);
+  box-shadow: 0 32px 100px rgba(0, 0, 0, 0.45), 0 0 80px rgba(244, 63, 94, 0.13);
+}
+
+.hero-panel::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, 0.045) 50%, transparent 62%);
+  transform: translateX(-130%);
+  animation: panel-sweep 11s ease-in-out infinite;
+}
+
+.glass-card {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .nav-link,
@@ -58,7 +76,7 @@ body {
 
 .nav-link:hover,
 .footer-link:hover {
-  color: #a7f3d0;
+  color: #fda4af;
 }
 
 .faq-item summary::-webkit-details-marker {
@@ -66,8 +84,23 @@ body {
 }
 
 @keyframes rise {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes glow-drift {
+  from { transform: translate(-52%, -3%) scale(0.95); }
+  to { transform: translate(-48%, 4%) scale(1.08); }
+}
+
+@keyframes gradient-shift {
+  from { background-position: 0% 50%; }
+  to { background-position: 100% 50%; }
+}
+
+@keyframes panel-sweep {
+  0%, 68% { transform: translateX(-130%); }
+  100% { transform: translateX(130%); }
 }
 
 @keyframes float {
@@ -111,7 +144,7 @@ body {
 
 .flow-node:hover {
   transform: translateX(3px);
-  border-color: rgba(110, 231, 183, 0.35);
+  border-color: rgba(251, 113, 133, 0.42);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -120,7 +153,10 @@ body {
   .animate-rise-delayed,
   .float-chip,
   .status-ping,
-  .signal-connector {
+  .signal-connector,
+  .site-glow,
+  .gradient-text,
+  .hero-panel::after {
     animation: none;
   }
   .flow-node,
