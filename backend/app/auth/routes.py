@@ -1,36 +1,44 @@
+import logging
 import os
 import secrets
+import smtplib
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
 from fastapi.concurrency import run_in_threadpool
-from sqlalchemy import select,update
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import logging
-import smtplib
-
-from app.auth.email import send_verification_email,send_password_reset_email
-from app.auth.schemas import ResendVerificationRequest, VerifyEmailRequest, ForgotPasswordRequest, ResetPasswordRequest
-from app.models.auth import EmailVerificationToken, PasswordResetToken
-
 from app.auth.dependencies import (
     SESSION_COOKIE,
-    get_current_session,
     get_current_user,
     hash_token,
 )
-from app.auth.schemas import LoginRequest, SignupRequest, UserResponse
+from app.auth.email import send_password_reset_email, send_verification_email
+from app.auth.rate_limit import enforce_limit, refund_limit
+from app.auth.schemas import (
+    ForgotPasswordRequest,
+    LoginRequest,
+    ResendVerificationRequest,
+    ResetPasswordRequest,
+    SignupRequest,
+    UserResponse,
+    VerifyEmailRequest,
+)
 from app.auth.security import DUMMY_HASH, hash_password, verify_password
 from app.db import get_db
-from app.models.auth import PasswordCredential, User
+from app.models.auth import (
+    EmailVerificationToken,
+    PasswordCredential,
+    PasswordResetToken,
+    User,
+)
 from app.models.auth import Session as UserSession
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-
 
 SESSION_SECONDS = 7 * 24 * 60 * 60
 COOKIE_SECURE = os.getenv("COOKIE_SECURE", "false").lower() == "true"
@@ -58,12 +66,35 @@ def create_verification_token(db: AsyncSession, user_id) -> str:
     return raw_token
 
 
-async def deliver_verification_email(address: str, token: str) -> None:
+async def expire_unsent_token(
+    db: AsyncSession,
+    token_model: type[EmailVerificationToken] | type[PasswordResetToken],
+    raw_token: str,
+) -> None:
+    await db.execute(
+        update(token_model)
+        .where(token_model.token_hash == hash_token(raw_token))
+        .values(expires_at=datetime.now(timezone.utc))
+    )
+    await db.commit()
+
+
+async def deliver_verification_email(address: str, token: str) -> bool:
     try:
         await run_in_threadpool(send_verification_email, address, token)
+        return True
     except (OSError, smtplib.SMTPException):
-        # The account and token remain saved. The user can request another email.
         logger.exception("Could not send email verification message")
+        return False
+
+
+async def reject_invalid_login(email: str) -> None:
+    await enforce_limit("login-failed", email, 8, 15 * 60)
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid email or password",
+    )
+
 
 @router.post("/login", response_model=UserResponse)
 async def login(
@@ -82,29 +113,21 @@ async def login(
 
     if row is None:
         await run_in_threadpool(verify_password, payload.password, DUMMY_HASH)
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password",
-        )
+        await reject_invalid_login(normalized_email)
 
     user, credential = row
     password_is_valid = await run_in_threadpool(
-        verify_password,
-        payload.password,
-        credential.password_hash,
+        verify_password, payload.password, credential.password_hash
     )
 
     if not password_is_valid or user.status != "active":
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password",
-        )
-        
+        await reject_invalid_login(normalized_email)
+
     if user.email_verified_at is None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Verify your email before logging in",
-        )    
+        )
 
     token = secrets.token_urlsafe(32)
     token_hash = hash_token(token)
@@ -138,6 +161,7 @@ async def login(
 )
 async def signup(
     payload: SignupRequest,
+    response: Response,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> User:
     normalized_email = str(payload.email).strip().casefold()
@@ -168,8 +192,12 @@ async def signup(
             status_code=status.HTTP_409_CONFLICT,
             detail="An account with this email already exists",
         ) from exc
-        
-    await deliver_verification_email(str(payload.email), raw_token)    
+
+    sent = await deliver_verification_email(str(payload.email), raw_token)
+
+    if not sent:
+        await expire_unsent_token(db, EmailVerificationToken, raw_token)
+        response.status_code = status.HTTP_202_ACCEPTED
 
     return user
 
@@ -182,12 +210,21 @@ async def me(user: Annotated[User, Depends(get_current_user)]) -> User:
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(
     response: Response,
-    current: Annotated[tuple[UserSession, User], Depends(get_current_session)],
     db: Annotated[AsyncSession, Depends(get_db)],
+    cfa_session: Annotated[
+        str | None, Cookie(alias=SESSION_COOKIE)
+    ] = None,
 ) -> None:
-    user_session, _ = current
-    user_session.revoked_at = datetime.now(timezone.utc)
-    await db.commit()
+    if cfa_session:
+        await db.execute(
+            update(UserSession)
+            .where(
+                UserSession.token_hash == hash_token(cfa_session),
+                UserSession.revoked_at.is_(None),
+            )
+            .values(revoked_at=datetime.now(timezone.utc))
+        )
+        await db.commit()
 
     response.delete_cookie(
         key=SESSION_COOKIE,
@@ -196,7 +233,6 @@ async def logout(
         secure=COOKIE_SECURE,
         samesite="lax",
     )
-    
 
 @router.post("/verify-email", status_code=status.HTTP_204_NO_CONTENT)
 async def verify_email(
@@ -212,20 +248,31 @@ async def verify_email(
     )
     verification = result.scalar_one_or_none()
 
-    if (
-        verification is None
-        or verification.consumed_at is not None
-        or verification.expires_at <= now
-    ):
+    if verification is None:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=400,
             detail="Verification link is invalid or expired",
         )
 
     user = await db.get(User, verification.user_id)
     if user is None:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=400,
+            detail="Verification link is invalid or expired",
+        )
+
+    # Opening a link again after successful verification is harmless.
+    if verification.consumed_at is not None:
+        if user.email_verified_at is not None:
+            return
+        raise HTTPException(
+            status_code=400,
+            detail="Verification link is invalid or expired",
+        )
+
+    if verification.expires_at <= now:
+        raise HTTPException(
+            status_code=400,
             detail="Verification link is invalid or expired",
         )
 
@@ -240,6 +287,7 @@ async def resend_verification(
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> None:
     normalized_email = str(payload.email).strip().casefold()
+    await enforce_limit("verify-resend", normalized_email, 3, 60 * 60)
 
     user_result = await db.execute(
         select(User).where(User.email_normalized == normalized_email)
@@ -258,16 +306,19 @@ async def resend_verification(
     )
     latest = latest_result.scalar_one_or_none()
 
-    if latest is not None:
+    if latest is not None and latest.expires_at > datetime.now(timezone.utc):
         elapsed = datetime.now(timezone.utc) - latest.created_at
         if elapsed.total_seconds() < RESEND_WAIT_SECONDS:
             return
 
     raw_token = create_verification_token(db, user.id)
     await db.commit()
-    await deliver_verification_email(user.email, raw_token)  
-    
-    
+
+    sent = await deliver_verification_email(user.email, raw_token)
+    if not sent:
+        await expire_unsent_token(db, EmailVerificationToken, raw_token)
+        await refund_limit("verify-resend", normalized_email)
+
 
 @router.post("/forgot-password", status_code=status.HTTP_204_NO_CONTENT)
 async def forgot_password(
@@ -275,6 +326,7 @@ async def forgot_password(
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> None:
     normalized_email = str(payload.email).strip().casefold()
+    await enforce_limit("password-email", normalized_email, 3, 60 * 60)
 
     user = await db.scalar(
         select(User).where(User.email_normalized == normalized_email)
@@ -296,7 +348,7 @@ async def forgot_password(
         .limit(1)
     )
 
-    if latest is not None:
+    if latest is not None and latest.expires_at > datetime.now(timezone.utc):
         elapsed = datetime.now(timezone.utc) - latest.created_at
         if elapsed.total_seconds() < RESET_REQUEST_WAIT_SECONDS:
             return
@@ -318,6 +370,8 @@ async def forgot_password(
         )
     except (OSError, smtplib.SMTPException):
         logger.exception("Could not send password reset email")
+        await expire_unsent_token(db, PasswordResetToken, raw_token)
+        await refund_limit("password-email", normalized_email)
 
 
 @router.post("/reset-password", status_code=status.HTTP_204_NO_CONTENT)
@@ -325,45 +379,49 @@ async def reset_password(
     payload: ResetPasswordRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> None:
-    now = datetime.now(timezone.utc)
-    new_hash = await run_in_threadpool(
-        hash_password, payload.new_password
+    invalid_link = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="Reset link is invalid or expired",
     )
 
     async with db.begin():
         reset = await db.scalar(
-            select(PasswordResetToken)
-            .where(
+            select(PasswordResetToken).where(
                 PasswordResetToken.token_hash == hash_token(payload.token)
             )
+        )
+        if reset is None:
+            raise invalid_link
+
+        # Serialize password resets for this user, including when two
+        # different valid links are submitted at the same time.
+        user = await db.scalar(
+            select(User)
+            .where(User.id == reset.user_id)
             .with_for_update()
         )
+        if user is None:
+            raise invalid_link
+
+        # Reload after acquiring the user lock: another reset may have
+        # consumed this link while we waited.
+        await db.refresh(reset)
+        now = datetime.now(timezone.utc)
 
         if (
-            reset is None
-            or reset.consumed_at is not None
+            reset.consumed_at is not None
             or reset.expires_at <= now
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Reset link is invalid or expired",
-            )
-
-        user = await db.get(User, reset.user_id)
-        if (
-            user is None
             or user.status != "active"
             or user.email_verified_at is None
         ):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Reset link is invalid or expired",
-            )
+            raise invalid_link
+
+        new_hash = await run_in_threadpool(
+            hash_password, payload.new_password
+        )
 
         credential = await db.get(PasswordCredential, user.id)
-
         if credential is None:
-            # OAuth-only user: create their first local password.
             db.add(
                 PasswordCredential(
                     user_id=user.id,
@@ -371,13 +429,20 @@ async def reset_password(
                 )
             )
         else:
-            # Existing password user: replace the old password.
             credential.password_hash = new_hash
             credential.changed_at = now
 
-        reset.consumed_at = now
+        # Using one link invalidates all other reset links for this user.
+        await db.execute(
+            update(PasswordResetToken)
+            .where(
+                PasswordResetToken.user_id == user.id,
+                PasswordResetToken.consumed_at.is_(None),
+            )
+            .values(consumed_at=now)
+        )
 
-        # Sign out existing sessions after a password reset.
+        # Require login again on all devices.
         await db.execute(
             update(UserSession)
             .where(
@@ -385,4 +450,4 @@ async def reset_password(
                 UserSession.revoked_at.is_(None),
             )
             .values(revoked_at=now)
-        )    
+        )

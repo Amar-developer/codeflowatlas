@@ -1,7 +1,23 @@
 import os
 import smtplib
+import ssl
 from email.message import EmailMessage
 from urllib.parse import urlencode
+
+
+def _send_message(message: EmailMessage) -> None:
+    host = os.environ["SMTP_HOST"]
+    port = int(os.environ.get("SMTP_PORT", "1025"))
+
+    with smtplib.SMTP(host, port, timeout=10) as smtp:
+        if os.environ.get("SMTP_STARTTLS", "false").lower() == "true":
+            smtp.starttls(context=ssl.create_default_context())
+
+        username = os.environ.get("SMTP_USER")
+        if username:
+            smtp.login(username, os.environ["SMTP_PASSWORD"])
+
+        smtp.send_message(message)
 
 
 def send_verification_email(address: str, token: str) -> None:
@@ -19,21 +35,9 @@ def send_verification_email(address: str, token: str) -> None:
         "you can ignore this message.\n"
     )
 
-    host = os.environ["SMTP_HOST"]
-    port = int(os.environ.get("SMTP_PORT", "1025"))
+    _send_message(message)
 
-    with smtplib.SMTP(host, port, timeout=10) as smtp:
-        if os.environ.get("SMTP_STARTTLS", "false").lower() == "true":
-            smtp.starttls()
 
-        username = os.environ.get("SMTP_USER")
-        if username:
-            smtp.login(username, os.environ["SMTP_PASSWORD"])
-
-        smtp.send_message(message)
-        
-        
-        
 def send_password_reset_email(address: str, token: str) -> None:
     app_url = os.environ["APP_PUBLIC_URL"].rstrip("/")
     link = f"{app_url}/reset-password?{urlencode({'token': token})}"
@@ -49,15 +53,4 @@ def send_password_reset_email(address: str, token: str) -> None:
         "you can ignore this email.\n"
     )
 
-    host = os.environ["SMTP_HOST"]
-    port = int(os.environ.get("SMTP_PORT", "1025"))
-
-    with smtplib.SMTP(host, port, timeout=10) as smtp:
-        if os.environ.get("SMTP_STARTTLS", "false").lower() == "true":
-            smtp.starttls()
-
-        username = os.environ.get("SMTP_USER")
-        if username:
-            smtp.login(username, os.environ["SMTP_PASSWORD"])
-
-        smtp.send_message(message)        
+    _send_message(message)

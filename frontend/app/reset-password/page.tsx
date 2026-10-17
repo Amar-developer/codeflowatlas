@@ -61,7 +61,7 @@ const ResetPasswordPage = () => {
             <h1 className="text-3xl font-bold">Set your password</h1>
 
             {!token && !complete && (
-                <p className="mt-6 text-rose-300">
+                <p className="mt-6 text-brand-300">
                     Reset link is missing. Request a new link.
                 </p>
             )}
@@ -84,7 +84,7 @@ const ResetPasswordPage = () => {
 
                     <button
                         disabled={busy}
-                        className="w-full rounded-lg bg-rose-500 p-3 font-semibold text-white disabled:opacity-50"
+                        className="w-full rounded-lg bg-brand-500 p-3 font-semibold text-white disabled:opacity-50"
                     >
                         {busy ? "Saving…" : "Set password"}
                     </button>
@@ -95,7 +95,7 @@ const ResetPasswordPage = () => {
 
             <Link
                 href={complete ? "/login" : "/forgot-password"}
-                className="mt-8 text-rose-300"
+                className="mt-8 text-brand-300"
             >
                 {complete ? "Go to login" : "Request a new link"}
             </Link>

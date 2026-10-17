@@ -24,7 +24,7 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
-    
+
     
 class PasswordCredential(Base):
     __tablename__ = "password_credentials"
@@ -41,11 +41,16 @@ class PasswordCredential(Base):
 class OAuthIdentity(Base):
     __tablename__ = "oauth_identities"
     __table_args__ = (
-        UniqueConstraint(
-            "provider",
-            "provider_subject",
-            name="uq_oauth_provider_subject",
-        ),
+    UniqueConstraint(
+        "provider",
+        "provider_subject",
+        name="uq_oauth_provider_subject",
+    ),
+    UniqueConstraint(
+        "user_id",
+        "provider",
+        name="uq_oauth_user_provider",
+    ),
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
@@ -121,4 +126,4 @@ class PasswordResetToken(Base):
     )
     consumed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True)
-    )            
+    )

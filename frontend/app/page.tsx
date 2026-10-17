@@ -48,10 +48,10 @@ const Brand = () => (
     className="group inline-flex items-center gap-3"
     href="#top"
   >
-    <span className="grid size-10 place-items-center rounded-xl border border-rose-400/30 bg-rose-500/10 shadow-lg shadow-rose-500/10 transition group-hover:border-rose-300/60 group-hover:shadow-rose-500/25">
+    <span className="grid size-10 place-items-center rounded-xl border border-brand-400/30 bg-brand-500/10 shadow-lg shadow-brand-500/10 transition group-hover:border-brand-300/60 group-hover:shadow-brand-500/25">
       <svg
         aria-hidden="true"
-        className="size-6 text-rose-400"
+        className="size-6 text-brand-400"
         fill="none"
         viewBox="0 0 24 24"
       >
@@ -65,15 +65,15 @@ const Brand = () => (
         />
       </svg>
     </span>
-    <span className="text-lg font-bold tracking-tight text-white transition group-hover:text-rose-200">
-      CodeFlowAtlas<span className="text-rose-400">.</span>
+    <span className="text-lg font-bold tracking-tight text-white transition group-hover:text-brand-200">
+      CodeFlowAtlas<span className="text-brand-400">.</span>
     </span>
   </a>
 );
 
 const Eyebrow = ({ children }: { children: ReactNode }) => (
-  <p className="mb-5 flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-rose-400">
-    <span aria-hidden="true" className="h-px w-7 bg-rose-400" />
+  <p className="mb-5 flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-brand-400">
+    <span aria-hidden="true" className="h-px w-7 bg-brand-400" />
     {children}
   </p>
 );
@@ -87,7 +87,7 @@ type StatusItemProps = {
 const StatusItem = ({ name, detail, ready }: StatusItemProps) => (
   <div className="flex items-center gap-3">
     <span
-      className={`relative size-2 shrink-0 rounded-full ${ready ? "bg-cyan-300" : "bg-rose-400"}`}
+      className={`relative size-2 shrink-0 rounded-full ${ready ? "bg-cyan-300" : "bg-brand-400"}`}
     >
       {ready && (
         <span className="status-ping absolute inset-0 rounded-full bg-cyan-300" />
@@ -98,7 +98,7 @@ const StatusItem = ({ name, detail, ready }: StatusItemProps) => (
       <span className="text-xs text-slate-500">{detail}</span>
     </div>
     <span
-      className={`ml-auto text-xs font-medium ${ready ? "text-cyan-300" : "text-rose-300"}`}
+      className={`ml-auto text-xs font-medium ${ready ? "text-cyan-300" : "text-brand-300"}`}
     >
       {ready ? "Online" : "Unavailable"}
     </span>
@@ -109,18 +109,18 @@ type FlowNodeProps = {
   icon: ReactNode;
   label: string;
   sublabel: string;
-  tone?: "rose" | "violet" | "cyan";
+  tone?: "brand" | "violet" | "cyan";
 };
 
 const FlowNode = ({
   icon,
   label,
   sublabel,
-  tone = "rose",
+  tone = "brand",
 }: FlowNodeProps) => (
   <div className="flow-node flex items-center gap-3 rounded-xl border border-white/10 bg-slate-900/90 p-3 shadow-xl shadow-black/20">
     <span
-      className={`grid size-9 shrink-0 place-items-center rounded-lg text-xs font-bold ${tone === "violet" ? "bg-violet-400/15 text-violet-300" : tone === "cyan" ? "bg-cyan-400/15 text-cyan-300" : "bg-rose-400/15 text-rose-300"}`}
+      className={`grid size-9 shrink-0 place-items-center rounded-lg text-xs font-bold ${tone === "violet" ? "bg-violet-400/15 text-violet-300" : tone === "cyan" ? "bg-cyan-400/15 text-cyan-300" : "bg-brand-400/15 text-brand-300"}`}
     >
       {icon}
     </span>
@@ -131,7 +131,7 @@ const FlowNode = ({
       <span className="block truncate text-xs text-slate-500">{sublabel}</span>
     </span>
     <span
-      className="ml-auto size-1.5 shrink-0 rounded-full bg-rose-300/70"
+      className="ml-auto size-1.5 shrink-0 rounded-full bg-brand-300/70"
       aria-hidden="true"
     />
   </div>
@@ -222,16 +222,16 @@ const HomePage = async () => {
           aria-labelledby="hero-title"
         >
           <div className="animate-rise relative z-10">
-            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-rose-400/25 bg-rose-500/10 px-3.5 py-2 text-xs font-semibold tracking-wide text-rose-200 shadow-sm shadow-rose-500/10">
+            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-brand-400/25 bg-brand-500/10 px-3.5 py-2 text-xs font-semibold tracking-wide text-brand-200 shadow-sm shadow-brand-500/10">
               <span
-                className="size-1.5 rounded-full bg-rose-400 shadow-[0_0_12px_#fb7185]"
+                className="size-1.5 rounded-full bg-brand-400 shadow-[0_0_12px_#E23744]"
                 aria-hidden="true"
               />{" "}
               A visual learning lab for your code
             </div>
             <h1
               id="hero-title"
-              className="max-w-2xl text-5xl font-semibold leading-[1.06] tracking-[-0.045em] text-white sm:text-4xl lg:text-5xl"
+              className="max-w-2xl text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl"
             >
               See the system behind{" "}
               <span className="gradient-text">the code AI wrote.</span>
@@ -242,27 +242,25 @@ const HomePage = async () => {
               guide that shows its evidence.
             </p>
             <div className="mt-10 flex flex-wrap gap-3">
-              <a
-                className="inline-flex items-center gap-3 rounded-xl bg-rose-500 px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-rose-500/25 transition duration-300 hover:-translate-y-1 hover:bg-rose-400 hover:shadow-rose-500/40"
-                href="#visual-lab"
+              <Link
+                className="inline-flex items-center gap-3 rounded-xl bg-brand-500 px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-brand-500/25 transition duration-300 hover:-translate-y-1 hover:bg-brand-400 hover:shadow-brand-500/40"
+                href="/dashboard"
               >
-                Explore the vision <Arrow />
-              </a>
+                Open your workspace <Arrow />
+              </Link>
               <a
                 className="inline-flex items-center gap-3 rounded-xl border border-white/15 bg-white/5 px-5 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition duration-300 hover:-translate-y-1 hover:border-white/30 hover:bg-white/10"
-                href={`${apiPublicUrl}/docs`}
-                rel="noreferrer"
-                target="_blank"
+                href="#visual-lab"
               >
-                Open live API docs <Arrow diagonal />
+                Explore the vision <Arrow diagonal />
               </a>
             </div>
             <p className="mt-5 text-xs text-slate-500">
-              The visual workspace shown here is a design preview. Analysis and
-              AI features are planned.
+              The dashboard is open as a design preview. Repository analysis and
+              AI guidance are still being built.
             </p>
             <div className="mt-9 flex flex-wrap gap-x-6 gap-y-3 border-t border-white/10 pt-5 text-xs font-medium text-slate-400">
-              <span><span className="mr-2 text-rose-400">✳</span> Source linked</span>
+              <span><span className="mr-2 text-brand-400">✳</span> Source linked</span>
               <span><span className="mr-2 text-violet-300">✳</span> AI guided</span>
               <span><span className="mr-2 text-cyan-300">✳</span> Evidence aware</span>
             </div>
@@ -274,15 +272,15 @@ const HomePage = async () => {
           >
             <div
               aria-hidden="true"
-              className="absolute -inset-10 rounded-full bg-gradient-to-br from-rose-500/20 via-violet-500/10 to-transparent blur-3xl"
+              className="absolute -inset-10 rounded-full bg-gradient-to-br from-brand-500/20 via-violet-500/10 to-transparent blur-3xl"
             />
             <div className="hero-panel lab-window relative overflow-hidden rounded-3xl border border-white/15 bg-[#101522]/95 shadow-2xl shadow-black/40">
               <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-5 py-4">
                 <div className="flex items-center gap-3">
                   <span className="flex gap-1.5" aria-hidden="true">
-                    <i className="size-2 rounded-full bg-rose-400/70" />
+                    <i className="size-2 rounded-full bg-brand-400/70" />
                     <i className="size-2 rounded-full bg-amber-300/70" />
-                    <i className="size-2 rounded-full bg-rose-300/70" />
+                    <i className="size-2 rounded-full bg-brand-300/70" />
                   </span>
                   <span className="text-xs font-semibold tracking-wide text-slate-300">
                     FLOW EXPLORER
@@ -307,7 +305,7 @@ const HomePage = async () => {
                       sublabel="Route · app/routes.py:28"
                     />
                     <div
-                      className="signal-connector ml-7 h-5 w-px bg-rose-300/30"
+                      className="signal-connector ml-7 h-5 w-px bg-brand-300/30"
                       aria-hidden="true"
                     />
                     <FlowNode
@@ -342,7 +340,7 @@ const HomePage = async () => {
                       </p>
                     </div>
                     <div className="rounded-xl border border-white/10 bg-slate-950/70 p-4 text-xs text-slate-400">
-                      <span className="font-semibold text-rose-300">
+                      <span className="font-semibold text-brand-300">
                         SOURCE LINKED
                       </span>
                       <p className="mt-2 leading-relaxed">
@@ -353,8 +351,8 @@ const HomePage = async () => {
                 </div>
               </div>
             </div>
-            <div className="float-chip absolute -bottom-5 left-4 flex items-center gap-2 rounded-xl border border-rose-400/25 bg-[#171b29] px-4 py-3 text-xs font-semibold text-rose-200 shadow-xl shadow-black/30 sm:-left-5">
-              <span className="size-2 rounded-full bg-rose-300" /> Learn one
+            <div className="float-chip absolute -bottom-5 left-4 flex items-center gap-2 rounded-xl border border-brand-400/25 bg-[#171b29] px-4 py-3 text-xs font-semibold text-brand-200 shadow-xl shadow-black/30 sm:-left-5">
+              <span className="size-2 rounded-full bg-brand-300" /> Learn one
               step at a time
             </div>
           </div>
@@ -398,7 +396,7 @@ const HomePage = async () => {
               className="text-4xl font-bold tracking-tight text-white sm:text-5xl"
             >
               From “what does this do?” to{" "}
-              <span className="text-rose-400">“now I see it.”</span>
+              <span className="text-brand-400">“now I see it.”</span>
             </h2>
             <p className="mt-5 text-lg leading-relaxed text-slate-400">
               A guided path from unfamiliar source code to an explanation you
@@ -408,16 +406,16 @@ const HomePage = async () => {
           <div className="mt-12 grid gap-4 md:grid-cols-3">
             {workflow.map((step) => (
               <article
-                className="glass-card group relative flex min-h-72 flex-col overflow-hidden rounded-3xl border border-white/10 p-7 transition duration-300 hover:-translate-y-2 hover:border-rose-400/35 hover:shadow-2xl hover:shadow-rose-950/25"
+                className="glass-card group relative flex min-h-72 flex-col overflow-hidden rounded-3xl border border-white/10 p-7 transition duration-300 hover:-translate-y-2 hover:border-brand-400/35 hover:shadow-2xl hover:shadow-brand-950/25"
                 key={step.number}
               >
                 <div className="mb-10 flex items-start justify-between">
-                  <span className="font-mono text-sm text-rose-400">
+                  <span className="font-mono text-sm text-brand-400">
                     {step.number} / 03
                   </span>
                   <span
                     aria-hidden="true"
-                    className="grid size-12 place-items-center rounded-xl border border-rose-400/15 bg-rose-500/10 text-2xl text-rose-200 transition group-hover:border-rose-400/40 group-hover:bg-rose-500/15"
+                    className="grid size-12 place-items-center rounded-xl border border-brand-400/15 bg-brand-500/10 text-2xl text-brand-200 transition group-hover:border-brand-400/40 group-hover:bg-brand-500/15"
                   >
                     {step.symbol}
                   </span>
@@ -463,20 +461,20 @@ const HomePage = async () => {
               <div className="lab-grid overflow-hidden rounded-3xl border border-white/10 bg-[#0d111c]/90 p-6 shadow-xl shadow-black/20 lg:col-span-7 sm:p-8">
                 <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-rose-300">
+                    <p className="text-xs font-bold uppercase tracking-widest text-brand-300">
                       01 / Source map
                     </p>
                     <h3 className="mt-2 text-xl font-semibold text-white">
                       A flow you can actually follow
                     </h3>
                   </div>
-                  <span className="rounded-full border border-rose-300/20 bg-rose-300/5 px-3 py-1.5 text-xs text-rose-200">
+                  <span className="rounded-full border border-brand-300/20 bg-brand-300/5 px-3 py-1.5 text-xs text-brand-200">
                     Source inferred
                   </span>
                 </div>
                 <div className="relative mx-auto max-w-lg py-2">
                   <div
-                    className="absolute bottom-10 left-6 top-10 w-px bg-gradient-to-b from-rose-300/50 via-cyan-300/40 to-violet-300/40"
+                    className="absolute bottom-10 left-6 top-10 w-px bg-gradient-to-b from-brand-300/50 via-cyan-300/40 to-violet-300/40"
                     aria-hidden="true"
                   />
                   <div className="relative space-y-5">
@@ -549,7 +547,7 @@ const HomePage = async () => {
                   </p>
                   <div className="mt-5 space-y-4">
                     <div className="flex items-center gap-3 text-sm text-slate-300">
-                      <span className="size-2.5 rounded-full bg-rose-300" />{" "}
+                      <span className="size-2.5 rounded-full bg-brand-300" />{" "}
                       Inferred from source
                     </div>
                     <div className="flex items-center gap-3 text-sm text-slate-300">
@@ -597,7 +595,7 @@ const HomePage = async () => {
                 <div className="h-3 w-10/12 rounded bg-cyan-300/70" />
                 <div className="ml-5 h-3 w-7/12 rounded bg-cyan-300/45" />
                 <div className="ml-10 h-3 w-5/12 rounded bg-violet-300/60" />
-                <div className="ml-5 h-3 w-4/12 rounded bg-rose-300/50" />
+                <div className="ml-5 h-3 w-4/12 rounded bg-brand-300/50" />
               </div>
               <h3 className="mt-8 text-xl font-semibold text-white">
                 See where a request goes.
@@ -633,9 +631,9 @@ const HomePage = async () => {
                 specific improvement to test.
               </p>
             </article>
-            <article className="glass-card overflow-hidden rounded-3xl border border-white/10 p-6 transition duration-300 hover:-translate-y-1 hover:border-rose-300/25">
+            <article className="glass-card overflow-hidden rounded-3xl border border-white/10 p-6 transition duration-300 hover:-translate-y-1 hover:border-brand-300/25">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-widest text-rose-300">
+                <span className="text-xs font-bold uppercase tracking-widest text-brand-300">
                   System design lab
                 </span>
                 <span className="text-xs text-slate-500">Planned</span>
@@ -650,7 +648,7 @@ const HomePage = async () => {
                   <path
                     d="M0 57 35 53 70 54 105 41 140 42 175 22 210 34 245 15 300 28"
                     fill="none"
-                    stroke="#fb7185"
+                    stroke="#E23744"
                     strokeWidth="2.5"
                   />
                   <path
@@ -701,7 +699,7 @@ const HomePage = async () => {
                     {item.question}
                     <span
                       aria-hidden="true"
-                      className="text-xl text-rose-300 transition group-open:rotate-45"
+                      className="text-xl text-brand-300 transition group-open:rotate-45"
                     >
                       +
                     </span>
@@ -716,7 +714,7 @@ const HomePage = async () => {
         </section>
 
         <section
-          className="border-t border-white/10 bg-gradient-to-r from-rose-950/30 via-[#111522] to-violet-950/20 py-20"
+          className="border-t border-white/10 bg-gradient-to-r from-brand-950/30 via-[#111522] to-violet-950/20 py-20"
           aria-labelledby="closing-title"
         >
           <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 px-5 sm:px-8 lg:flex-row lg:items-center lg:px-10">
@@ -734,7 +732,7 @@ const HomePage = async () => {
               </p>
             </div>
             <a
-              className="inline-flex items-center gap-3 rounded-xl bg-rose-500 px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-rose-500/20 transition duration-300 hover:-translate-y-1 hover:bg-rose-400"
+              className="inline-flex items-center gap-3 rounded-xl bg-brand-500 px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-brand-500/20 transition duration-300 hover:-translate-y-1 hover:bg-brand-400"
               href={repositoryUrl}
               rel="noreferrer"
               target="_blank"

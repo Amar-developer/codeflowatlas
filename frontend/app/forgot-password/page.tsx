@@ -59,7 +59,7 @@ const ForgotPasswordPage = () => {
 
         <button
           disabled={busy}
-          className="w-full rounded-lg bg-rose-500 p-3 font-semibold text-white disabled:opacity-50"
+          className="w-full rounded-lg bg-brand-500 p-3 font-semibold text-white disabled:opacity-50"
         >
           {busy ? "Sending…" : "Email me a link"}
         </button>
@@ -67,7 +67,7 @@ const ForgotPasswordPage = () => {
 
       {message && <p role="status" className="mt-6">{message}</p>}
 
-      <Link href="/login" className="mt-8 text-rose-300">
+      <Link href="/login" className="mt-8 text-brand-300">
         Back to login
       </Link>
     </main>

@@ -16,8 +16,18 @@ const VerifyEmailPage = () => {
 
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
-    setToken(query.get("token") ?? "");
+    const value = query.get("token") ?? "";
+    setToken(value);
     setEmail(query.get("email") ?? "");
+
+    if (value) {
+      window.history.replaceState({}, "", "/verify-email");
+    }
+    if (query.get("delivery") === "failed") {
+      setMessage(
+        "Your account was created, but the email could not be sent. Request a new link.",
+      );
+    }
   }, []);
 
   const verify = async () => {
@@ -45,7 +55,6 @@ const VerifyEmailPage = () => {
 
       setVerified(true);
       setMessage("Email verified. You can now log in.");
-      window.history.replaceState({}, "", "/verify-email");
     } catch (cause: unknown) {
       setMessage(
         cause instanceof Error ? cause.message : "Verification failed.",
@@ -96,7 +105,7 @@ const VerifyEmailPage = () => {
           type="button"
           onClick={verify}
           disabled={busy}
-          className="mt-8 rounded-lg bg-rose-500 p-3 font-semibold text-white transition hover:bg-rose-400 disabled:opacity-50"
+          className="mt-8 rounded-lg bg-brand-500 p-3 font-semibold text-white transition hover:bg-brand-400 disabled:opacity-50"
         >
           Verify email
         </button>
@@ -116,7 +125,7 @@ const VerifyEmailPage = () => {
           type="button"
           onClick={resend}
           disabled={busy || !email}
-          className="text-rose-300 disabled:opacity-50"
+          className="text-brand-300 disabled:opacity-50"
         >
           Resend verification email
         </button>
@@ -128,7 +137,7 @@ const VerifyEmailPage = () => {
         </p>
       )}
 
-      <Link href="/login" className="mt-8 text-rose-300">
+      <Link href="/login" className="mt-8 text-brand-300">
         Go to login
       </Link>
     </main>

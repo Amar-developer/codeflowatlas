@@ -54,6 +54,22 @@ app.add_middleware(
     max_age=600,
 )
 
+
+@app.middleware("http")
+async def protect_auth_posts(request, call_next):
+    if (
+        request.method in {"POST", "PUT", "PATCH", "DELETE"}
+        and request.url.path.startswith("/auth/")
+    ):
+        expected = os.environ["APP_PUBLIC_URL"].rstrip("/")
+        if request.headers.get("origin") != expected:
+            return JSONResponse(
+                status_code=403,
+                content={"detail": "Invalid origin"},
+            )
+
+    return await call_next(request)
+
 app.include_router(oauth_router)
 
 app.include_router(auth_router)

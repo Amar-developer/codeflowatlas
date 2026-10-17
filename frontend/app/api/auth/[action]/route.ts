@@ -25,12 +25,13 @@ const forward = async (
     return Response.json({ detail: "Not found" }, { status: 404 });
   }
 
-  if (request.method === "POST") {
-    const origin = request.headers.get("origin");
+  const origin = request.headers.get("origin");
 
-    if (origin && origin !== process.env.AUTH_ORIGIN) {
-      return Response.json({ detail: "Invalid origin" }, { status: 403 });
-    }
+  if (request.method === "POST" && origin !== process.env.AUTH_ORIGIN) {
+    return Response.json(
+      { detail: "Invalid origin" },
+      { status: 403 },
+    );
   }
 
   const apiUrl = process.env.API_INTERNAL_URL ?? "http://127.0.0.1:8081";
@@ -44,6 +45,7 @@ const forward = async (
         ...(request.method === "POST"
           ? { "content-type": "application/json" }
           : {}),
+        ...(origin ? { origin } : {}),
         ...(cookie ? { cookie } : {}),
       },
       body:

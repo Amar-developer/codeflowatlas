@@ -21,6 +21,8 @@ Open `http://127.0.0.1:3000` for the frontend and `http://127.0.0.1:8000/docs` f
 
 For live frontend editing in Docker, use `sudo docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build web`. The development override mounts the frontend source and runs Next.js in development mode, so changes to `frontend/app/` appear without rebuilding. Keep the normal Compose command above for the production build. If `WEB_PORT` in `.env` is changed, open that port instead of 3000.
 
+Authentication uses Redis for request limits and the configured SMTP server for verification and password-reset mail. Fill in the OAuth and SMTP placeholders from `.env.example` before starting the stack. The `auth-cleanup` service removes expired authentication records daily and retries after a failed cleanup run. Locally, `COOKIE_SECURE=false` supports HTTP; an HTTPS deployment must set it to `true`.
+
 The root [Dockerfile](Dockerfile) builds the API image, [frontend/Dockerfile](frontend/Dockerfile) builds the frontend image, and [docker-compose.yml](docker-compose.yml) starts both with PostgreSQL. The backend uses SQLAlchemy, Psycopg 3, and Alembic for database access and migrations. `.env.example` is the safe configuration template; the working `.env` contains local credentials and is excluded from Git and Docker build context.
 
 The frontend listens on local port 3000 and the API on 8000 by default. If either is occupied, change `WEB_PORT` or `API_PORT` in `.env` and use those ports in the URLs above. PostgreSQL stays on the Compose network and is not published to the host. The production application containers run as non-root users.

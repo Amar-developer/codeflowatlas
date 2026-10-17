@@ -68,7 +68,7 @@ const AuthHeader = () => {
 
   if (state.status === "error") {
     return (
-      <span role="status" className="text-sm text-rose-300">
+      <span role="status" className="text-sm text-brand-300">
         Account unavailable
       </span>
     );
@@ -79,13 +79,13 @@ const AuthHeader = () => {
       <div className="flex items-center gap-2">
         <Link
           href="/login"
-          className="rounded-full px-3 py-2 text-sm font-semibold text-slate-200 hover:text-rose-300"
+          className="rounded-full px-3 py-2 text-sm font-semibold text-slate-200 hover:text-brand-300"
         >
           Log in
         </Link>
         <Link
           href="/signup"
-          className="rounded-full bg-rose-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-400"
+          className="rounded-full bg-brand-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-400"
         >
           Sign up
         </Link>
@@ -108,11 +108,11 @@ const AuthHeader = () => {
     <div className="flex items-center gap-3">
       <Link
         href="/dashboard"
-        className="flex items-center gap-2 rounded-full text-sm font-semibold text-slate-100 hover:text-rose-300"
+        className="flex items-center gap-2 rounded-full text-sm font-semibold text-slate-100 hover:text-brand-300"
       >
         <span
           aria-hidden="true"
-          className="grid size-9 place-items-center rounded-full bg-rose-500 font-bold text-white"
+          className="grid size-9 place-items-center rounded-full bg-brand-500 font-bold text-white"
         >
           {initials}
         </span>

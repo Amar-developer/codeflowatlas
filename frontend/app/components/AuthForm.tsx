@@ -3,7 +3,7 @@
 import type { FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type AuthFormProps = {
   mode: "login" | "signup";
@@ -22,6 +22,24 @@ const AuthForm = ({ mode }: AuthFormProps) => {
   const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get("error");
+    if (!code) return;
+
+    const messages: Record<string, string> = {
+      account_exists:
+        "This email already has an account. Log in with its original method, then connect this provider from the dashboard.",
+      email_unverified:
+        "Your provider has not verified this email address.",
+      oauth_cancelled: "Sign-in was cancelled.",
+      oauth_failed: "Provider sign-in failed. Please try again.",
+    };
+
+    setError(messages[code] ?? "Provider sign-in failed.");
+    window.history.replaceState({}, "", window.location.pathname);
+  }, []);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -55,11 +73,17 @@ const AuthForm = ({ mode }: AuthFormProps) => {
       }
 
       if (isSignup) {
-        router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+        const destination = `/verify-email?email=${encodeURIComponent(email)}`;
+        router.push(
+          response.status === 202
+            ? `${destination}&delivery=failed`
+            : destination,
+        );
       } else {
         router.push("/dashboard");
         router.refresh();
       }
+
     } catch (cause: unknown) {
       setError(
         cause instanceof Error ? cause.message : "Something went wrong.",
@@ -71,7 +95,7 @@ const AuthForm = ({ mode }: AuthFormProps) => {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 text-slate-100">
-      <Link href="/" className="mb-8 text-sm text-rose-300">
+      <Link href="/" className="mb-8 text-sm text-brand-300">
         ← CodeFlowAtlas
       </Link>
 
@@ -123,7 +147,7 @@ const AuthForm = ({ mode }: AuthFormProps) => {
         {!isSignup && (
           <Link
             href="/forgot-password"
-            className="block text-sm text-rose-300 underline"
+            className="block text-sm text-brand-300 underline"
           >
             Forgot password?
           </Link>
@@ -131,7 +155,7 @@ const AuthForm = ({ mode }: AuthFormProps) => {
 
 
         {error && (
-          <p role="alert" className="text-sm text-rose-300">
+          <p role="alert" className="text-sm text-brand-300">
             {error}
           </p>
         )}
@@ -139,7 +163,7 @@ const AuthForm = ({ mode }: AuthFormProps) => {
         {!isSignup && error === "Verify your email before logging in" && (
           <Link
             href={`/verify-email?email=${encodeURIComponent(email)}`}
-            className="block text-sm text-rose-300 underline"
+            className="block text-sm text-brand-300 underline"
           >
             Resend verification email
           </Link>
@@ -147,7 +171,7 @@ const AuthForm = ({ mode }: AuthFormProps) => {
 
         <button
           disabled={submitting}
-          className="w-full rounded-lg bg-rose-500 p-3 font-semibold text-white transition hover:bg-rose-400 disabled:opacity-50"
+          className="w-full rounded-lg bg-brand-500 p-3 font-semibold text-white transition hover:bg-brand-400 disabled:opacity-50"
         >
           {submitting
             ? "Please wait…"
@@ -221,7 +245,7 @@ const AuthForm = ({ mode }: AuthFormProps) => {
       <p className="mt-6 text-sm text-slate-400">
         {isSignup ? "Already have an account?" : "New to CodeFlowAtlas?"}{" "}
         <Link
-          className="text-rose-300"
+          className="text-brand-300"
           href={isSignup ? "/login" : "/signup"}
         >
           {isSignup ? "Log in" : "Create an account"}
