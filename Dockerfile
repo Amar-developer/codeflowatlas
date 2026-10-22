@@ -6,7 +6,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 COPY backend/requirements.txt /app/requirements.txt
+COPY packages/ir /opt/cfa-ir
+COPY analyzers/python /opt/cfa-python-analyzer
+
 RUN pip install --no-cache-dir -r /app/requirements.txt \
+    && pip install --no-cache-dir /opt/cfa-ir /opt/cfa-python-analyzer \
     && groupadd --system app \
     && useradd --system --gid app --home-dir /app app
 

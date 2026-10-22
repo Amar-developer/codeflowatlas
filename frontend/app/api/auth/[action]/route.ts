@@ -39,6 +39,7 @@ const forward = async (
   try {
     const cookie = request.headers.get("cookie");
 
+    // FastAPI validates the origin and resolves /auth/me from this cookie.
     const upstream = await fetch(`${apiUrl}/auth/${action}`, {
       method: request.method,
       headers: {

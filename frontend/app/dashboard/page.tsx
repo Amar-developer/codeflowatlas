@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthHeader from "../components/AuthHeader";
 import type { AuthUser } from "../types/auth";
+import RepositoryImport from "../components/RepositoryImport";
 
 type DashboardState =
   | { status: "loading" }
@@ -114,18 +115,7 @@ const DashboardPage = () => {
                 <span className="rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1.5 text-xs font-semibold text-amber-200">Design preview · Core analysis coming next</span>
               </div>
 
-              <section className="dashboard-highlight relative mt-8 overflow-hidden rounded-3xl border border-brand-400/20 p-6 sm:p-8" aria-labelledby="start-title">
-                <div className="relative z-10 max-w-xl">
-                  <p className="text-xs font-bold uppercase tracking-widest text-brand-300">Start here</p>
-                  <h2 id="start-title" className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">Turn a repository into a map you can learn from.</h2>
-                  <p className="mt-4 text-sm leading-6 text-slate-300">Paste a public repository link, choose a discovered API, and follow its code path. This workflow is being built; repository import is not available yet.</p>
-                  <div className="mt-6 flex flex-wrap gap-3">
-                    <button type="button" disabled className="inline-flex cursor-not-allowed items-center gap-2 rounded-xl bg-brand-500/60 px-4 py-2.5 text-sm font-bold text-white">Import repository <span aria-hidden="true">↗</span></button>
-                    <Link href="/#how-it-works" className="inline-flex items-center rounded-xl border border-white/20 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10">See how it will work</Link>
-                  </div>
-                </div>
-                <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-16 size-72 rounded-full bg-brand-500/15 blur-3xl" />
-              </section>
+              <RepositoryImport />
 
               <section id="workspace-preview" className="mt-10" aria-labelledby="preview-title">
                 <div className="flex flex-wrap items-end justify-between gap-3">

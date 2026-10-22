@@ -12,8 +12,8 @@ fixtures
 tests
 apps
 workers
-packages
-analyzers
+# packages
+# analyzers
 infra/terraform
 legacy-auth-foundation
 frontend/node_modules

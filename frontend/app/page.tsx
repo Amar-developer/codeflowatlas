@@ -199,7 +199,7 @@ const HomePage = async () => {
     >
       <div
         aria-hidden="true"
-      className="site-glow pointer-events-none absolute left-1/2 top-0 h-[32rem] w-full -translate-x-1/2"
+      className="site-glow pointer-events-none absolute left-1/2 top-0 h-128 w-full -translate-x-1/2"
       />
       <header className="relative z-20 border-b border-white/10 bg-[#090b13]/75 backdrop-blur-xl">
         <nav
@@ -231,7 +231,7 @@ const HomePage = async () => {
             </div>
             <h1
               id="hero-title"
-              className="max-w-2xl text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl"
+              className="max-w-2xl text-4xl font-semibold leading-tight tracking-tight text-white sm:text-3xl lg:text-5xl"
             >
               See the system behind{" "}
               <span className="gradient-text">the code AI wrote.</span>
@@ -272,7 +272,7 @@ const HomePage = async () => {
           >
             <div
               aria-hidden="true"
-              className="absolute -inset-10 rounded-full bg-gradient-to-br from-brand-500/20 via-violet-500/10 to-transparent blur-3xl"
+              className="absolute -inset-10 rounded-full bg-linear-to-br from-brand-500/20 via-violet-500/10 to-transparent blur-3xl"
             />
             <div className="hero-panel lab-window relative overflow-hidden rounded-3xl border border-white/15 bg-[#101522]/95 shadow-2xl shadow-black/40">
               <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-5 py-4">
@@ -360,7 +360,7 @@ const HomePage = async () => {
 
         <section
           id="status"
-          className="border-y border-white/10 bg-white/[0.025]"
+          className="border-y border-white/10 bg-white/2.5"
           aria-labelledby="status-title"
         >
           <div className="mx-auto grid max-w-7xl gap-7 px-5 py-6 sm:px-8 md:grid-cols-3 md:items-center lg:px-10">
@@ -436,7 +436,7 @@ const HomePage = async () => {
 
         <section
           id="visual-lab"
-          className="relative border-y border-white/10 bg-gradient-to-b from-[#101420] via-[#111522] to-[#0c0f18] py-24 lg:py-32"
+          className="relative border-y border-white/10 bg-linear-to-b from-[#101420] via-[#111522] to-[#0c0f18] py-24 lg:py-32"
           aria-labelledby="lab-title"
         >
           <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
@@ -474,7 +474,7 @@ const HomePage = async () => {
                 </div>
                 <div className="relative mx-auto max-w-lg py-2">
                   <div
-                    className="absolute bottom-10 left-6 top-10 w-px bg-gradient-to-b from-brand-300/50 via-cyan-300/40 to-violet-300/40"
+                    className="absolute bottom-10 left-6 top-10 w-px bg-linear-to-b from-brand-300/50 via-cyan-300/40 to-violet-300/40"
                     aria-hidden="true"
                   />
                   <div className="relative space-y-5">
@@ -714,7 +714,7 @@ const HomePage = async () => {
         </section>
 
         <section
-          className="border-t border-white/10 bg-gradient-to-r from-brand-950/30 via-[#111522] to-violet-950/20 py-20"
+          className="border-t border-white/10 bg-linear-to-r from-brand-950/30 via-[#111522] to-violet-950/20 py-20"
           aria-labelledby="closing-title"
         >
           <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 px-5 sm:px-8 lg:flex-row lg:items-center lg:px-10">

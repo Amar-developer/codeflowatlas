@@ -12,6 +12,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
 from app.auth.routes import router as auth_router
+from app.projects.routes import router as projects_router
 
 import os
 
@@ -59,7 +60,7 @@ app.add_middleware(
 async def protect_auth_posts(request, call_next):
     if (
         request.method in {"POST", "PUT", "PATCH", "DELETE"}
-        and request.url.path.startswith("/auth/")
+        and (request.url.path.startswith("/auth/") or request.url.path.startswith("/projects/"))
     ):
         expected = os.environ["APP_PUBLIC_URL"].rstrip("/")
         if request.headers.get("origin") != expected:
@@ -73,6 +74,8 @@ async def protect_auth_posts(request, call_next):
 app.include_router(oauth_router)
 
 app.include_router(auth_router)
+
+app.include_router(projects_router)
 
 
 @app.get("/health/live", tags=["health"])
