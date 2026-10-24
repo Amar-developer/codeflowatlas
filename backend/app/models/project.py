@@ -46,3 +46,5 @@ class ProjectEndpoint(Base):
     handler: Mapped[str] = mapped_column(String(500), nullable=False)
     source_file: Mapped[str] = mapped_column(String(1500), nullable=False)
     source_line: Mapped[int] = mapped_column(Integer, nullable=False)
+    app_name: Mapped[str | None] = mapped_column(String(500))
+    app_file: Mapped[str | None] = mapped_column(String(1500)) 

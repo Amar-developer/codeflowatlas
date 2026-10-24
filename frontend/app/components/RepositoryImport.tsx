@@ -18,6 +18,8 @@ type Endpoint = {
   source_file: string;
   source_line: number;
   source_url: string;
+  app_name: string;
+  app_file: string;
 };
 
 type ProjectDetail = ProjectSummary & {
@@ -53,6 +55,8 @@ const RepositoryImport = () => {
   const [selected, setSelected] = useState<ProjectDetail | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [appFilter, setAppFilter] = useState("all")
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const loadProjects = async () => {
     const response = await fetch("/api/projects", { cache: "no-store" });
@@ -82,6 +86,7 @@ const RepositoryImport = () => {
 
       const imported = (await response.json()) as ProjectDetail;
       setSelected(imported);
+      setAppFilter("all");
       setUrl("");
       await loadProjects();
     } catch (cause) {
@@ -100,8 +105,41 @@ const RepositoryImport = () => {
       });
       if (!response.ok) throw new Error(await errorMessage(response));
       setSelected((await response.json()) as ProjectDetail);
+      setAppFilter("all");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not open project");
+    }
+  };
+
+  const removeProject = async (project: ProjectSummary) => {
+    if (
+      !window.confirm(
+        `Remove the saved import "${project.name}" at ${project.commit_sha.slice(0, 7)}?`,
+      )
+    ) {
+      return;
+    }
+
+    setDeletingId(project.id);
+    setError("");
+
+    try {
+      const response = await fetch(`/api/projects/${project.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) throw new Error(await errorMessage(response));
+
+      if (selected?.id === project.id) {
+        setSelected(null);
+        setAppFilter("all");
+      }
+
+      await loadProjects();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not remove import");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -150,14 +188,24 @@ const RepositoryImport = () => {
           <h3 className="text-sm font-semibold text-white">Your imports</h3>
           <div className="mt-3 flex flex-wrap gap-2">
             {projects.map((project) => (
-              <button
-                key={project.id}
-                type="button"
-                onClick={() => void openProject(project.id)}
-                className="rounded-lg border border-white/15 px-3 py-2 text-sm text-slate-200 hover:border-brand-400"
-              >
-                {project.name}
-              </button>
+              <div key={project.id} className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => void openProject(project.id)}
+                  className="rounded-lg border border-white/15 px-3 py-2 text-sm text-slate-200 hover:border-brand-400"
+                >
+                  {project.name} · {project.commit_sha.slice(0, 7)}
+                </button>
+                <button
+                  type="button"
+                  disabled={deletingId === project.id}
+                  onClick={() => void removeProject(project)}
+                  className="rounded-lg border border-brand-400/30 px-3 py-2 text-sm text-brand-200 hover:bg-brand-500/10 disabled:opacity-50"
+                  aria-label={`Remove import ${project.name} at ${project.commit_sha.slice(0, 7)}`}
+                >
+                  {deletingId === project.id ? "Removing…" : "Remove"}
+                </button>
+              </div>
             ))}
           </div>
         </div>
@@ -179,33 +227,63 @@ const RepositoryImport = () => {
             </p>
           )}
 
+          <label
+            htmlFor="detected-app"
+            className="mt-6 block text-sm font-semibold text-white"
+          >
+            Detected FastAPI app
+          </label>
+          <select
+            id="detected-app"
+            value={appFilter}
+            onChange={(event) => setAppFilter(event.target.value)}
+            className="mt-2 w-full rounded-xl border border-white/15 bg-[#0b0d17] px-3 py-2 text-sm text-white"
+          >
+            <option value="all">All detected apps</option>
+            {[...new Set(selected.endpoints.map((item) => item.app_file))]
+              .sort()
+              .map((file) => (
+                <option key={file} value={file}>
+                  {file}
+                </option>
+              ))}
+          </select>
+
           <ul className="mt-5 space-y-3">
-            {selected.endpoints.map((endpoint) => (
-              <li
-                key={endpoint.id}
-                className="rounded-xl border border-white/10 bg-white/[0.03] p-4"
-              >
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="rounded bg-brand-500/15 px-2 py-1 font-mono text-xs font-bold text-brand-200">
-                    {endpoint.method}
-                  </span>
-                  <span className="font-mono text-sm text-white">
-                    {endpoint.path}
-                  </span>
-                </div>
-                <p className="mt-2 break-all text-xs text-slate-400">
-                  {endpoint.handler} · {endpoint.source_file}:{endpoint.source_line}
-                </p>
-                <a
-                  href={endpoint.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 inline-block text-sm font-semibold text-brand-300 hover:underline"
+            {selected.endpoints
+              .filter(
+                (endpoint) =>
+                  appFilter === "all" || endpoint.app_file === appFilter,
+              )
+              .map((endpoint) => (
+                <li
+                  key={endpoint.id}
+                  className="rounded-xl border border-white/10 bg-white/3 p-4"
                 >
-                  Open source at this commit ↗
-                </a>
-              </li>
-            ))}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="rounded bg-brand-500/15 px-2 py-1 font-mono text-xs font-bold text-brand-200">
+                      {endpoint.method}
+                    </span>
+                    <span className="font-mono text-sm text-white">
+                      {endpoint.path}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs text-slate-400">
+                    App: {endpoint.app_file}
+                  </p>
+                  <p className="mt-2 break-all text-xs text-slate-400">
+                    {endpoint.handler} · {endpoint.source_file}:{endpoint.source_line}
+                  </p>
+                  <a
+                    href={endpoint.source_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 inline-block text-sm font-semibold text-brand-300 hover:underline"
+                  >
+                    Open source at this commit ↗
+                  </a>
+                </li>
+              ))}
           </ul>
 
           {selected.warnings.length > 0 && (

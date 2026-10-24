@@ -230,6 +230,8 @@ def _analyze_archive(archive: bytes, repository_url: str):
                     ),
                     "source_file": entity.location.path,
                     "source_line": entity.location.start_line,
+                    "app_name": entity.properties.get("app_name"),
+                    "app_file": entity.properties.get("app_file"),
                 }
             )
 

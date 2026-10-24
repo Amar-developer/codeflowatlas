@@ -22,6 +22,7 @@ class RouterDef:
     qualified_name: str
     is_app: bool
     prefix: str
+    source_file : str
     mounts: list[tuple["RouterDef", str]] = field(default_factory=list)  # parent router, include prefix
 
 
@@ -36,6 +37,8 @@ class Route:
     request_model: str | None
     response_model: str | None
     status_code: int | None
+    app_name: str
+    app_file: str
 
 
 @dataclass
@@ -80,7 +83,7 @@ def discover_routes(index: ProjectIndex) -> tuple[list[Route], list[RouteWarning
                     )
                     continue
 
-                for path in full_paths:
+                for path, app_name, app_file in full_paths:
                     routes.append(
                         Route(
                             method=method,
@@ -92,6 +95,8 @@ def discover_routes(index: ProjectIndex) -> tuple[list[Route], list[RouteWarning
                             request_model=_request_model(index, module, func),
                             response_model=_response_model(index, module, func, decorator),
                             status_code=_status_code(index, module, decorator),
+                            app_name=app_name,
+                            app_file=app_file
                         )
                     )
     return routes, warnings
@@ -114,7 +119,7 @@ def _find_routers(index: ProjectIndex, warnings: list[RouteWarning]) -> dict[str
             if prefix is None:
                 warnings.append(RouteWarning("dynamic_router_prefix", f"{qualified} has a non-literal prefix", module, call))
                 continue
-            routers[qualified] = RouterDef(qualified, symbol.qualified_name == FASTAPI_APP, prefix)
+            routers[qualified] = RouterDef(qualified_name=qualified, is_app=symbol.qualified_name == FASTAPI_APP, prefix=prefix, source_file=module.path)
     return routers
 
 
@@ -142,15 +147,29 @@ def _find_mounts(index: ProjectIndex, routers: dict[str, RouterDef], warnings: l
                 child.mounts.append((parent, prefix))
 
 
-def _full_paths(router: RouterDef, path: str, depth: int = 0) -> list[str]:
-    """`path` already includes this router's own prefix. Returns one path per chain that reaches an app."""
+def _full_paths(
+    router: RouterDef,
+    path: str,
+    depth: int = 0,
+) -> list[tuple[str, str, str]]:
+    """Return (full path, FastAPI app name, FastAPI app source file)."""
     if router.is_app:
-        return [path]
+        return [(path, router.qualified_name, router.source_file)]
+
     if depth > MAX_DEPTH:
         return []
-    paths: list[str] = []
+
+    paths: list[tuple[str, str, str]] = []
+
     for parent, include_prefix in router.mounts:
-        paths += _full_paths(parent, parent.prefix + include_prefix + path, depth + 1)
+        paths.extend(
+            _full_paths(
+                parent,
+                parent.prefix + include_prefix + path,
+                depth + 1,
+            )
+        )
+
     return paths
 
 

@@ -91,7 +91,7 @@ class ProjectIndex:
         """Dotted name an expression refers to through imports and top-level definitions, or None."""
         if isinstance(expr, ast.Name):
             if expr.id in module.imports:
-                return module.imports[expr.id]
+                return self._canonical_import(module, module.imports[expr.id])
             if expr.id in module.functions or expr.id in module.classes or expr.id in module.assignments:
                 return f"{module.name}.{expr.id}"
             return None
@@ -133,6 +133,31 @@ class ProjectIndex:
             return Symbol("function", qualified, module, module.functions[head])
         if head in module.assignments and not rest:
             return Symbol("variable", qualified, module, module.assignments[head])
+        
         if head in module.imports:
-            return self.lookup(".".join([module.imports[head], *rest]), depth + 1)
+            imported = self._canonical_import(module, module.imports[head])
+            return self.lookup(".".join([imported, *rest]), depth + 1)
         return None
+    
+    def _canonical_import(self, module: ModuleInfo, qualified: str) -> str:
+        """Resolve an absolute import against this file's repository subtree."""
+        root_name = qualified.split(".", 1)[0]
+        parts = module.name.split(".")
+        limit = len(parts) if module.is_package else len(parts) - 1
+
+        for index in range(limit - 1, -1, -1):
+            if parts[index] != root_name:
+                continue
+
+            prefix = ".".join(parts[:index])
+            candidate = f"{prefix}.{qualified}" if prefix else qualified
+
+            if any(
+                name == candidate
+                or candidate.startswith(name + ".")
+                or name.startswith(candidate + ".")
+                for name in self.modules
+            ):
+                return candidate
+
+        return qualified

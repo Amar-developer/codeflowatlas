@@ -5,6 +5,7 @@ Target files are read as bytes and parsed with `ast`. They are never imported, e
 
 import ast
 import hashlib
+from collections import Counter
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -28,7 +29,7 @@ from cfa_python_analyzer.scan import scan
 from cfa_python_analyzer.symbols import FunctionNode, ModuleInfo, ProjectIndex, build_module, class_methods
 
 
-ANALYZER_VERSION = "0.1.0"
+ANALYZER_VERSION = "0.2.0"
 ANALYZER = AnalyzerInfo(name="cfa-python-analyzer", version=ANALYZER_VERSION)
 
 
@@ -64,12 +65,20 @@ def analyze(root: Path, source: str | None = None) -> IRDocument:
             entities.setdefault(entity.id, entity)
 
     routes, route_warnings = discover_routes(index)
+    route_counts = Counter((route.method, route.path) for route in routes)
     warnings += [
         AnalysisWarning(code=w.code, message=w.message, location=_node_location(w.module.path, w.node)) for w in route_warnings
     ]
 
     for route in routes:
-        endpoint_id = entity_id(EntityType.API_ENDPOINT, f"{route.method} {route.path}")
+        route_key = (route.method, route.path)
+
+        if route_counts[route_key] > 1:
+            identity = f"{route.app_name} {route.method} {route.path}"
+        else:
+            identity = f"{route.method} {route.path}"
+
+        endpoint_id = entity_id(EntityType.API_ENDPOINT, identity)
         location = _node_location(route.module.path, route.decorator)
         if endpoint_id in entities:
             warnings.append(
@@ -91,6 +100,8 @@ def analyze(root: Path, source: str | None = None) -> IRDocument:
                 "request_model": route.request_model,
                 "response_model": route.response_model,
                 "status_code": route.status_code,
+                "app_name": route.app_name,
+                "app_file": route.app_file
             },
         )
         edge = Edge(

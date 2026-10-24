@@ -2,9 +2,9 @@ from typing import Annotated
 from urllib.parse import quote
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user
@@ -35,6 +35,8 @@ def endpoint_payload(project: Project, endpoint: ProjectEndpoint) -> dict:
         "source_file": endpoint.source_file,
         "source_line": endpoint.source_line,
         "source_url": source_url,
+        "app_name": endpoint.app_name or "Unknown app",
+        "app_file": endpoint.app_file or "Unknown app file",
     }
 
 
@@ -141,3 +143,25 @@ async def get_project(
     )
 
     return project_payload(project, list(endpoint_result.scalars()))
+
+@router.delete("/{project_id}", status_code=204)
+async def delete_project(
+    project_id: UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> Response:
+    result = await db.execute(
+        delete(Project)
+        .where(
+            Project.id == project_id,
+            Project.owner_id == user.id,
+        )
+        .returning(Project.id)
+    )
+
+    if result.scalar_one_or_none() is None:
+        await db.rollback()
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    await db.commit()
+    return Response(status_code=204)

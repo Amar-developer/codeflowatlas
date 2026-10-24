@@ -2,7 +2,7 @@ type Context = {
   params: Promise<{ id: string }>;
 };
 
-export const GET = async (
+const forward = async (
   request: Request,
   { params }: Context,
 ): Promise<Response> => {
@@ -12,23 +12,36 @@ export const GET = async (
     return Response.json({ detail: "Invalid project ID" }, { status: 400 });
   }
 
+  const origin = request.headers.get("origin");
+
+  if (request.method === "DELETE" && origin !== process.env.AUTH_ORIGIN) {
+    return Response.json({ detail: "Invalid origin" }, { status: 403 });
+  }
+
   const apiBase = process.env.API_INTERNAL_URL ?? "http://127.0.0.1:8081";
   const cookie = request.headers.get("cookie");
 
   try {
     const upstream = await fetch(`${apiBase}/projects/${id}`, {
-      headers: cookie ? { cookie } : {},
+      method: request.method,
+      headers: {
+        ...(cookie ? { cookie } : {}),
+        ...(origin ? { origin } : {}),
+      },
       cache: "no-store",
     });
 
-    return new Response(await upstream.text(), {
-      status: upstream.status,
-      headers: {
-        "content-type":
-          upstream.headers.get("content-type") ?? "application/json",
-        "cache-control": "no-store",
+    return new Response(
+      upstream.status === 204 ? null : await upstream.text(),
+      {
+        status: upstream.status,
+        headers: {
+          "content-type":
+            upstream.headers.get("content-type") ?? "application/json",
+          "cache-control": "no-store",
+        },
       },
-    });
+    );
   } catch {
     return Response.json(
       { detail: "Repository service is unavailable" },
@@ -36,3 +49,6 @@ export const GET = async (
     );
   }
 };
+
+export const GET = forward;
+export const DELETE = forward;
