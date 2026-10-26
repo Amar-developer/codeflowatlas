@@ -21,6 +21,8 @@ Open `http://127.0.0.1:3000` for the frontend and `http://127.0.0.1:8000/docs` f
 
 For live frontend editing in Docker, use `sudo docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build web`. The development override mounts the frontend source and runs Next.js in development mode, so changes to `frontend/app/` appear without rebuilding. Keep the normal Compose command above for the production build. If `WEB_PORT` in `.env` is changed, open that port instead of 3000.
 
+Compose runs `migrate` (`alembic upgrade head`) after PostgreSQL is healthy. The API and authentication cleanup wait for successful migration completion. Inspect failures with `docker compose logs migrate`. Existing volumes are upgraded in place; rerun `docker compose up --build -d` after pulling migration changes (include both Compose files for development). Do not delete the database volume to fix missing tables. `/health/ready` checks connectivity only, not the schema.
+
 Authentication uses Redis for request limits and the configured SMTP server for verification and password-reset mail. Fill in the OAuth and SMTP placeholders from `.env.example` before starting the stack. The `auth-cleanup` service removes expired authentication records daily and retries after a failed cleanup run. Locally, `COOKIE_SECURE=false` supports HTTP; an HTTPS deployment must set it to `true`.
 
 The root [Dockerfile](Dockerfile) builds the API image, [frontend/Dockerfile](frontend/Dockerfile) builds the frontend image, and [docker-compose.yml](docker-compose.yml) starts both with PostgreSQL. The backend uses SQLAlchemy, Psycopg 3, and Alembic for database access and migrations. `.env.example` is the safe configuration template; the working `.env` contains local credentials and is excluded from Git and Docker build context.
@@ -34,6 +36,10 @@ Create a virtual environment, install `backend/requirements.txt`, then provide `
 ### Run the frontend outside Docker
 
 From `frontend`, run `npm ci` yourself and then `npm run dev`. Use Node.js 20.9 or newer. The UI uses Tailwind CSS v4 through PostCSS. With the API running on your host, set `API_INTERNAL_URL=http://127.0.0.1:8000` and `API_PUBLIC_URL=http://127.0.0.1:8000`; change the port to match `API_PORT` if needed. The Compose setup supplies these URLs automatically.
+
+### Endpoint catalog
+
+After importing or reopening a project, search its endpoints by method, path, handler, or source file and filter by detected app file. Choose **View endpoint details** to inspect the handler, application, source location, pinned commit, and analyzer version. Selection resets when opening or importing a project. Search filters affect the list; the selected details remain visible while filtering. Source links open GitHub at the saved commit. This is static source evidence; downstream call graphs, in-app source excerpts, and runtime behavior are not available in this panel. Project analysis warnings remain visible below the catalog.
 
 ## Core flow
 
@@ -55,21 +61,21 @@ The first useful result is understanding a confusing feature in a small project,
 
 ## Project layout
 
-| Location | Responsibility |
-| --- | --- |
-| `frontend` | Next.js interface and its container image |
-| `backend` | FastAPI API and Python dependencies |
+| Location                 | Responsibility                                                                            |
+| ------------------------ | ----------------------------------------------------------------------------------------- |
+| `frontend`               | Next.js interface and its container image                                                 |
+| `backend`                | FastAPI API and Python dependencies                                                       |
 | `legacy-auth-foundation` | Earlier authentication prototype; preserved separately and not wired into the current API |
-| `workers/analyzer` | Safe static analysis jobs |
-| `workers/traffic` | Isolated traffic and failure experiments |
-| `workers/ai` | Evidence retrieval and grounded explanation jobs |
-| `packages/ir` | Versioned language-neutral graph contract |
-| `packages/schemas` | Shared API and event schemas |
-| `analyzers/python` | Python and FastAPI analysis; later Flask and Django |
-| `infra` | Future infrastructure definitions |
-| `fixtures` | Supported repository examples and expected graphs |
-| `tests` | Unit, integration, and end-to-end verification |
-| `docs` | Product, technical, security, and delivery documentation |
+| `workers/analyzer`       | Safe static analysis jobs                                                                 |
+| `workers/traffic`        | Isolated traffic and failure experiments                                                  |
+| `workers/ai`             | Evidence retrieval and grounded explanation jobs                                          |
+| `packages/ir`            | Versioned language-neutral graph contract                                                 |
+| `packages/schemas`       | Shared API and event schemas                                                              |
+| `analyzers/python`       | Python and FastAPI analysis; later Flask and Django                                       |
+| `infra`                  | Future infrastructure definitions                                                         |
+| `fixtures`               | Supported repository examples and expected graphs                                         |
+| `tests`                  | Unit, integration, and end-to-end verification                                            |
+| `docs`                   | Product, technical, security, and delivery documentation                                  |
 
 ## Build order
 
@@ -103,3 +109,17 @@ codeflowatlas/
 ├── infra/                    Future infrastructure
 └── docs/                     Product and developer documentation
 ```
+
+The endpoint inspector includes a selectable static source-flow diagram.
+It shows the endpoint, handler, and up to eight returned direct
+relationships. Unresolved targets use dashed amber branches. The text
+relationship list retains confidence, provenance, and source locations.
+Diagram layout does not represent runtime execution order.
+
+The source-flow explorer supports one to three downstream relationship
+levels, relationship filters, selectable diagram nodes, and revision-pinned
+source links. A text view retains confidence, provenance, source ranges,
+and unresolved-call explanations. The API limits each slice to 100 entities
+and 200 relationships; the diagram displays up to 40 matching nodes.
+Depth boundaries and partial results remain visible. Diagram columns
+represent source-relationship distance, not runtime execution order.

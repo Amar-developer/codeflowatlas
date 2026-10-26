@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 const RootLayout = ({ children }: { children: ReactNode }) => (
-  <html lang="en">
+  <html lang="en" data-scroll-behavior="smooth">
     <body>{children}</body>
   </html>
 );

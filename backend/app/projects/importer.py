@@ -145,25 +145,17 @@ def _analyze_archive(archive: bytes, repository_url: str):
             ):
                 raise ImportProblem(422, "Repository archive contains an unsafe path")
 
-            raw_parts = (
-                name[:-1].split("/") if entry.is_dir() else name.split("/")
-            )
+            raw_parts = name[:-1].split("/") if entry.is_dir() else name.split("/")
 
-            if not raw_parts or any(
-                part in ("", ".", "..") for part in raw_parts
-            ):
-                raise ImportProblem(
-                    422, "Repository archive contains an unsafe path"
-                )
+            if not raw_parts or any(part in ("", ".", "..") for part in raw_parts):
+                raise ImportProblem(422, "Repository archive contains an unsafe path")
 
             # GitHub archives contain one top-level directory entry.
             if entry.is_dir() and len(raw_parts) == 1:
                 continue
 
             if len(raw_parts) < 2:
-                raise ImportProblem(
-                    422, "Repository archive contains an unsafe path"
-                )
+                raise ImportProblem(422, "Repository archive contains an unsafe path")
 
             relative = PurePosixPath(*raw_parts[1:])
 
@@ -186,7 +178,9 @@ def _analyze_archive(archive: bytes, repository_url: str):
             seen.add(path)
 
             if len(path) > 1500 or entry.file_size > MAX_FILE_BYTES:
-                raise ImportProblem(413, "A Python source file exceeds the import limit")
+                raise ImportProblem(
+                    413, "A Python source file exceeds the import limit"
+                )
             if python_files >= MAX_PYTHON_FILES:
                 raise ImportProblem(413, "Repository has too many Python files")
 
@@ -194,7 +188,9 @@ def _analyze_archive(archive: bytes, repository_url: str):
                 data = handle.read(MAX_FILE_BYTES + 1)
 
             if len(data) > MAX_FILE_BYTES:
-                raise ImportProblem(413, "A Python source file exceeds the import limit")
+                raise ImportProblem(
+                    413, "A Python source file exceeds the import limit"
+                )
 
             total_bytes += len(data)
             if total_bytes > MAX_TOTAL_PYTHON_BYTES:
@@ -250,7 +246,13 @@ def _analyze_archive(archive: bytes, repository_url: str):
 
         skipped_count += len(document.skipped_files)
 
-        return endpoints, warnings, skipped_count, document.analyzer.version
+        return (
+            endpoints,
+            warnings,
+            skipped_count,
+            document.analyzer.version,
+            document.model_dump(mode="json"),
+        )
 
 
 async def import_public_github_repository(url: str) -> dict:
@@ -295,8 +297,16 @@ async def import_public_github_repository(url: str) -> dict:
         raise ImportProblem(502, "Could not reach GitHub") from exc
 
     try:
-        endpoints, warnings, skipped_count, analyzer_version = (
-            await run_in_threadpool(_analyze_archive, archive, repository_url)
+        (
+            endpoints,
+            warnings,
+            skipped_count,
+            analyzer_version,
+            static_graph,
+        ) = await run_in_threadpool(
+            _analyze_archive,
+            archive,
+            repository_url,
         )
     except (zipfile.BadZipFile, RuntimeError) as exc:
         raise ImportProblem(422, "Repository archive could not be analyzed") from exc
@@ -310,4 +320,5 @@ async def import_public_github_repository(url: str) -> dict:
         "endpoints": endpoints,
         "warnings": warnings,
         "skipped_count": skipped_count,
+        "static_graph": static_graph,
     }

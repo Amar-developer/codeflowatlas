@@ -30,6 +30,10 @@ class Project(Base):
         nullable=False,
         server_default=func.now(),
     )
+    static_graph: Mapped[dict | None] = mapped_column(
+        JSONB,
+        nullable=True,
+    )
 
 
 class ProjectEndpoint(Base):

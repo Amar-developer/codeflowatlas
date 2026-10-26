@@ -8,6 +8,7 @@ import hashlib
 from collections import Counter
 from collections.abc import Iterator
 from pathlib import Path
+from cfa_python_analyzer.calls import analyze_calls
 
 from cfa_ir import (
     AnalysisWarning,
@@ -26,17 +27,24 @@ from cfa_ir import (
 )
 from cfa_python_analyzer.fastapi_routes import discover_routes
 from cfa_python_analyzer.scan import scan
-from cfa_python_analyzer.symbols import FunctionNode, ModuleInfo, ProjectIndex, build_module, class_methods
+from cfa_python_analyzer.symbols import (
+    FunctionNode,
+    ModuleInfo,
+    ProjectIndex,
+    build_module,
+    class_methods,
+)
 
-
-ANALYZER_VERSION = "0.2.0"
+ANALYZER_VERSION = "0.6.0"
 ANALYZER = AnalyzerInfo(name="cfa-python-analyzer", version=ANALYZER_VERSION)
 
 
 def analyze(root: Path, source: str | None = None) -> IRDocument:
     root = root.resolve()
     scanned = scan(root)
-    skipped = [SkippedFile(path=path, reason=reason) for path, reason in scanned.skipped]
+    skipped = [
+        SkippedFile(path=path, reason=reason) for path, reason in scanned.skipped
+    ]
     warnings: list[AnalysisWarning] = []
     modules: list[ModuleInfo] = []
     fingerprint = hashlib.sha256()
@@ -52,7 +60,11 @@ def analyze(root: Path, source: str | None = None) -> IRDocument:
         except (SyntaxError, ValueError, RecursionError) as exc:
             line = getattr(exc, "lineno", None) or 1
             skipped.append(SkippedFile(path=path, reason="syntax error"))
-            warnings.append(AnalysisWarning(code="parse_error", message=str(exc), location=_location(path, line)))
+            warnings.append(
+                AnalysisWarning(
+                    code="parse_error", message=str(exc), location=_location(path, line)
+                )
+            )
             continue
         modules.append(build_module(path, tree))
 
@@ -67,7 +79,12 @@ def analyze(root: Path, source: str | None = None) -> IRDocument:
     routes, route_warnings = discover_routes(index)
     route_counts = Counter((route.method, route.path) for route in routes)
     warnings += [
-        AnalysisWarning(code=w.code, message=w.message, location=_node_location(w.module.path, w.node)) for w in route_warnings
+        AnalysisWarning(
+            code=w.code,
+            message=w.message,
+            location=_node_location(w.module.path, w.node),
+        )
+        for w in route_warnings
     ]
 
     for route in routes:
@@ -82,7 +99,11 @@ def analyze(root: Path, source: str | None = None) -> IRDocument:
         location = _node_location(route.module.path, route.decorator)
         if endpoint_id in entities:
             warnings.append(
-                AnalysisWarning(code="duplicate_route", message=f"{route.method} {route.path} is declared more than once", location=location)
+                AnalysisWarning(
+                    code="duplicate_route",
+                    message=f"{route.method} {route.path} is declared more than once",
+                    location=location,
+                )
             )
             continue
 
@@ -101,7 +122,7 @@ def analyze(root: Path, source: str | None = None) -> IRDocument:
                 "response_model": route.response_model,
                 "status_code": route.status_code,
                 "app_name": route.app_name,
-                "app_file": route.app_file
+                "app_file": route.app_file,
             },
         )
         edge = Edge(
@@ -115,9 +136,19 @@ def analyze(root: Path, source: str | None = None) -> IRDocument:
         )
         edges[edge.id] = edge
 
+    call_edges, call_warnings = analyze_calls(index, set(entities))
+
+    for call_edge in call_edges:
+        edges[call_edge.id] = call_edge
+
+    warnings.extend(call_warnings)
+
     return IRDocument(
         analyzer=ANALYZER,
-        repository=RevisionInfo(source=source or f"local:{root.name}", revision=f"sha256:{fingerprint.hexdigest()}"),
+        repository=RevisionInfo(
+            source=source or f"local:{root.name}",
+            revision=f"sha256:{fingerprint.hexdigest()}",
+        ),
         entities=sorted(entities.values(), key=lambda entity: entity.id),
         edges=sorted(edges.values(), key=lambda edge: edge.id),
         warnings=warnings,
@@ -152,7 +183,9 @@ def _function_entity(qualified: str, node: FunctionNode, path: str) -> Entity:
 
 
 def _node_location(path: str, node: ast.AST) -> SourceLocation:
-    return SourceLocation(path=path, start_line=node.lineno, end_line=node.end_lineno or node.lineno)
+    return SourceLocation(
+        path=path, start_line=node.lineno, end_line=node.end_lineno or node.lineno
+    )
 
 
 def _location(path: str, line: int) -> SourceLocation:
